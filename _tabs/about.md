@@ -25,7 +25,7 @@ order: 4
 - [‘혁신’ 품은 도시 빈집도 잔뜩 품었다(2019.10)](https://www.sisain.co.kr/news/articleView.html?idxno=40494)
 - [양꼬치 성지엔 프랜차이즈가 없다(2019.02)](https://www.sisain.co.kr/news/articleView.html?idxno=33874)
 
-## 외부협업
+## 외부협업(기획 및 데이터분석)
 
 - [제주 원도심에서 찾은 공유자전거 가능성(리빙랩)](https://www.jejusori.net/news/articleView.html?idxno=326507)
 - [대림동에서 보낸 서른 번의 밤](https://daerim.sisain.co.kr/)
