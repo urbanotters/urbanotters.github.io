@@ -147,6 +147,18 @@ pwa:
 
 paginate: 10
 
+#jekyll admin을 사용하기 위한  설정
+
+jekyll_admin:
+  hidden_links:
+    - collections
+  additional_pages:
+    - pages
+
+
+
+
+
 # The base URL of your site
 baseurl: ""
 
