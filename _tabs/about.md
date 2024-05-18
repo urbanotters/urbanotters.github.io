@@ -1,10 +1,8 @@
 ---
-# the default layout is 'page'
+title: About
 icon: fas fa-info-circle
 order: 4
 ---
-
-
 
 **신수현 / SUHYEON SHIN**
 
@@ -28,9 +26,11 @@ order: 4
 ## 외부협업(기획 및 데이터분석)
 
 - [제주 원도심에서 찾은 공유자전거 가능성(리빙랩)](https://www.jejusori.net/news/articleView.html?idxno=326507)
-- [대림동에서 보낸 서른 번의 밤](https://daerim.sisain.co.kr/)
-- [소리없이 번지는 도시의 질병 빈집](https://house.sisain.co.kr/)
-- [‘58년 개띠’의 상가 사냥, ‘94년 개띠’를 몰아내다](https://www.hani.co.kr/arti/economy/property/753898.html)
+- [서울시 민원 38.8%는 바로 이 문제(서울시 응답소)](https://www.sisain.co.kr/news/articleView.html?idxno=31596)
+- [오늘 오후 2시, 어디에 계셨습니까?(서울시 생활인구)](https://www.sisain.co.kr/news/articleView.html?idxno=31381)
+- [대림동에서 보낸 서른 번의 밤(프랜차이즈)](https://daerim.sisain.co.kr/)
+- [소리없이 번지는 도시의 질병 빈집(공가)](https://house.sisain.co.kr/)
+- [‘58년 개띠’의 상가 사냥, ‘94년 개띠’를 몰아내다(젠트리피케이션)](https://www.hani.co.kr/arti/economy/property/753898.html)
 
 ## 유튜브/강연/토론회 등
 
