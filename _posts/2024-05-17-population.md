@@ -1,5 +1,5 @@
 ---
-title: '데이터들 : 인구(population)'
+title: 데이터들 - 인구(population)
 tags:
 - post
 - data
