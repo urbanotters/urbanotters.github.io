@@ -50,7 +50,7 @@ jobs:
         run: |
           bundle exec htmlproofer "_site${{ steps.pages.outputs.base_path }}" \
             --disable-external \
-            --file-ignore "/404.html", "/about/index.html", "/archives/index.html", "/categories/index.html"
+            --url-ignore "/assets/js/dist/app.min.js"
       
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
