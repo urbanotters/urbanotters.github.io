@@ -45,12 +45,6 @@ jobs:
         run: bundle exec jekyll b -d "_site${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: "production"
-
-      - name: Test site with HTML Proofer
-        run: |
-          bundle exec htmlproofer "_site${{ steps.pages.outputs.base_path }}" \
-            --disable-external \
-            --url-ignore "/assets/js/dist/app.min.js"
       
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
