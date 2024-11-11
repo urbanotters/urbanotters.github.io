@@ -9,8 +9,7 @@ order: 4
 **도시데이터연구소**
 
 ## 프로필
-
-- [이력서/CV](/assets/docs/resume_202405.pdf)
+- [이력서/CV](https://urbanotters.github.io/assets/docs/resume_202405_refine.pdf)
 - [Linkedin](https://www.linkedin.com/in/urbanotter/)
 - [twitter](https://twitter.com/beingsince)
 
