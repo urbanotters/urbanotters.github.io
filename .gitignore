@@ -25,5 +25,6 @@ package-lock.json
 _sass/dist
 assets/js/dist
 
-# Admin tool cache
+# Admin tool
 tools/admin/__pycache__/
+tools/admin/.venv/

@@ -11,10 +11,13 @@ echo "=== Jekyll Blog Admin ==="
 echo "Blog root: $BLOG_ROOT"
 echo ""
 
+# Activate venv
+source "$SCRIPT_DIR/.venv/bin/activate"
+
 # Check Python dependencies
 if ! python3 -c "import flask" 2>/dev/null; then
     echo "Installing Python dependencies..."
-    pip3 install -r "$SCRIPT_DIR/requirements.txt"
+    pip install -r "$SCRIPT_DIR/requirements.txt"
 fi
 
 # Create _drafts directory if needed

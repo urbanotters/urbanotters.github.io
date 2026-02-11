@@ -322,10 +322,10 @@ def git_commit_and_push(message: Optional[str] = None) -> dict:
     # Get commit hash
     _, hash_out, _ = git_run(['rev-parse', '--short', 'HEAD'])
 
-    # Push
+    # Push current branch to origin/main (deploy target)
     _, branch_out, _ = git_run(['branch', '--show-current'])
-    branch = branch_out.strip() or 'main'
-    code, push_out, push_err = git_run(['push', 'origin', branch])
+    local_branch = branch_out.strip() or 'main'
+    code, push_out, push_err = git_run(['push', 'origin', f'{local_branch}:main'])
 
     return {
         'status': 'success' if code == 0 else 'push_failed',
