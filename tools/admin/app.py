@@ -542,7 +542,8 @@ def api_git_commit_push():
     data = request.get_json(force=True) if request.is_json else {}
     message = data.get('message')
     result = git_commit_and_push(message)
-    status_code = 200 if result['status'] in ('success', 'nothing') else 500
+    # push_failed still returns 200 — the commit succeeded, only push failed
+    status_code = 200 if result['status'] in ('success', 'nothing', 'push_failed') else 500
     return jsonify(result), status_code
 
 # ---------------------------------------------------------------------------
