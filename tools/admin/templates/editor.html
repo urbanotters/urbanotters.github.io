@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if post_path else 'New Post' }}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <!-- Front matter form -->
+    <div class="col-12">
+        <div class="content-card frontmatter-form">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    {{ 'Edit Post' if post_path else 'New Post' }}
+                </h5>
+                <div class="d-flex gap-2">
+                    <a href="/" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Back
+                    </a>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <!-- Template selector -->
+                <div class="col-md-3">
+                    <label class="form-label">Template</label>
+                    <select class="form-select form-select-sm" id="template-select">
+                        <option value="">— Select template —</option>
+                    </select>
+                </div>
+                <!-- Title -->
+                <div class="col-md-9">
+                    <label class="form-label">Title</label>
+                    <input type="text" class="form-control" id="post-title"
+                           placeholder="Post title">
+                </div>
+                <!-- Date -->
+                <div class="col-md-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-control form-control-sm" id="post-date">
+                </div>
+                <!-- Slug -->
+                <div class="col-md-3">
+                    <label class="form-label">Slug</label>
+                    <input type="text" class="form-control form-control-sm" id="post-slug"
+                           placeholder="url-safe-slug" pattern="[a-zA-Z0-9_-]+">
+                </div>
+                <!-- Categories -->
+                <div class="col-md-3">
+                    <label class="form-label">Categories</label>
+                    <div id="categories-container" class="d-flex flex-wrap gap-1"></div>
+                </div>
+                <!-- Tags -->
+                <div class="col-md-3">
+                    <label class="form-label">Tags</label>
+                    <div id="tags-container" class="d-flex flex-wrap gap-1"></div>
+                </div>
+                <!-- Custom tag input -->
+                <div class="col-md-6">
+                    <label class="form-label">Add custom tag</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" id="custom-tag-input"
+                               placeholder="New tag name">
+                        <button class="btn btn-outline-secondary" onclick="addCustomTag()">Add</button>
+                    </div>
+                </div>
+                <!-- Custom category input -->
+                <div class="col-md-6">
+                    <label class="form-label">Add custom category</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" id="custom-cat-input"
+                               placeholder="New category name">
+                        <button class="btn btn-outline-secondary" onclick="addCustomCategory()">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drop zone (for file uploads) -->
+    <div class="col-12">
+        <div class="drop-zone" id="editor-drop-zone">
+            <i class="bi bi-cloud-arrow-up fs-4"></i><br>
+            Drag &amp; drop images or files here to upload
+        </div>
+    </div>
+
+    <!-- Markdown editor -->
+    <div class="col-12">
+        <div class="content-card p-0">
+            <textarea id="editor-textarea"></textarea>
+        </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between">
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" id="btn-save" onclick="savePost(false)">
+                    <i class="bi bi-check-lg me-1"></i>Save as Draft
+                </button>
+                <button class="btn btn-success" id="btn-publish" onclick="savePost(true)">
+                    <i class="bi bi-send me-1"></i>Publish
+                </button>
+            </div>
+            <div>
+                {% if post_path %}
+                <button class="btn btn-outline-danger" onclick="deleteCurrentPost()">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js"></script>
+<script>
+const POST_PATH = '{{ post_path }}';
+let knownTags = [];
+let knownCategories = [];
+let selectedTags = new Set();
+let selectedCategories = new Set();
+let templates = {};
+
+// --- EasyMDE setup ---
+const easyMDE = new EasyMDE({
+    element: document.getElementById('editor-textarea'),
+    spellChecker: false,
+    autosave: { enabled: false },
+    sideBySideFullscreen: false,
+    status: ['lines', 'words', 'cursor'],
+    placeholder: 'Write your post content here...',
+    toolbar: [
+        'bold', 'italic', 'heading', '|',
+        'quote', 'unordered-list', 'ordered-list', '|',
+        'link', 'image', 'table', '|',
+        'preview', 'side-by-side', 'fullscreen', '|',
+        'guide',
+    ],
+});
+
+// --- Drag & drop on EasyMDE ---
+easyMDE.codemirror.on('drop', async (cm, event) => {
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    event.preventDefault();
+
+    for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const result = await API.upload('/api/assets/upload', formData);
+            const pos = cm.coordsChar({ left: event.pageX, top: event.pageY });
+            const mdLink = generateMarkdownLink(result.filename, result.path);
+            cm.replaceRange(mdLink, pos);
+            showNotification(`Uploaded: ${result.filename}`);
+        } catch (e) {
+            showNotification('Upload failed: ' + e.message, 'error');
+        }
+    }
+});
+
+// --- Drag & drop on the dedicated drop zone ---
+const dropZone = document.getElementById('editor-drop-zone');
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const files = e.dataTransfer?.files;
+    if (!files) return;
+
+    for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const result = await API.upload('/api/assets/upload', formData);
+            const mdLink = generateMarkdownLink(result.filename, result.path);
+            // Insert at cursor position in editor
+            const cm = easyMDE.codemirror;
+            const cursor = cm.getCursor();
+            cm.replaceRange(mdLink, cursor);
+            showNotification(`Uploaded: ${result.filename}`);
+        } catch (e2) {
+            showNotification('Upload failed: ' + e2.message, 'error');
+        }
+    }
+});
+
+function generateMarkdownLink(filename, assetPath) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
+    if (imageExts.includes(ext)) {
+        return `![${filename}](/${assetPath})\n`;
+    }
+    return `[${filename}](/${assetPath})\n`;
+}
+
+// --- Tags & Categories UI ---
+function renderTags() {
+    const container = document.getElementById('tags-container');
+    const allTags = [...new Set([...knownTags, ...selectedTags])];
+    container.innerHTML = allTags.map(t => {
+        const active = selectedTags.has(t) ? 'selected' : '';
+        return `<span class="tag-pill clickable ${active}" onclick="toggleTag('${t}')">${t}</span>`;
+    }).join('');
+}
+
+function renderCategories() {
+    const container = document.getElementById('categories-container');
+    const allCats = [...new Set([...knownCategories, ...selectedCategories])];
+    container.innerHTML = allCats.map(c => {
+        const active = selectedCategories.has(c) ? 'selected' : '';
+        return `<span class="tag-pill clickable ${active}" onclick="toggleCategory('${c}')">${c}</span>`;
+    }).join('');
+}
+
+function toggleTag(tag) {
+    if (selectedTags.has(tag)) selectedTags.delete(tag);
+    else selectedTags.add(tag);
+    renderTags();
+}
+
+function toggleCategory(cat) {
+    if (selectedCategories.has(cat)) selectedCategories.delete(cat);
+    else selectedCategories.add(cat);
+    renderCategories();
+}
+
+function addCustomTag() {
+    const input = document.getElementById('custom-tag-input');
+    const tag = input.value.trim();
+    if (tag) {
+        selectedTags.add(tag);
+        if (!knownTags.includes(tag)) knownTags.push(tag);
+        renderTags();
+        input.value = '';
+    }
+}
+
+function addCustomCategory() {
+    const input = document.getElementById('custom-cat-input');
+    const cat = input.value.trim();
+    if (cat) {
+        selectedCategories.add(cat);
+        if (!knownCategories.includes(cat)) knownCategories.push(cat);
+        renderCategories();
+        input.value = '';
+    }
+}
+
+// Enter key support for custom inputs
+document.getElementById('custom-tag-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); addCustomTag(); }
+});
+document.getElementById('custom-cat-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); addCustomCategory(); }
+});
+
+// --- Template selector ---
+function applyTemplate(key) {
+    const tmpl = templates[key];
+    if (!tmpl) return;
+    document.getElementById('post-title').value = tmpl.title || '';
+    selectedTags = new Set(tmpl.tags || []);
+    selectedCategories = new Set(tmpl.categories || []);
+    renderTags();
+    renderCategories();
+}
+
+// --- Collect form data ---
+function collectFormData(publish) {
+    return {
+        title: document.getElementById('post-title').value.trim(),
+        date: document.getElementById('post-date').value,
+        slug: document.getElementById('post-slug').value.trim(),
+        categories: [...selectedCategories],
+        tags: [...selectedTags],
+        body: easyMDE.value(),
+        is_draft: !publish,
+    };
+}
+
+// --- Save ---
+async function savePost(publish) {
+    const data = collectFormData(publish);
+
+    if (!data.title) { showNotification('Title is required', 'warning'); return; }
+    if (!data.slug) { showNotification('Slug is required', 'warning'); return; }
+    if (!data.date) { showNotification('Date is required', 'warning'); return; }
+    if (!/^[a-zA-Z0-9_-]+$/.test(data.slug)) {
+        showNotification('Slug must contain only letters, numbers, hyphens, underscores', 'warning');
+        return;
+    }
+
+    try {
+        let result;
+        if (POST_PATH) {
+            result = await API.put('/api/posts/' + POST_PATH, data);
+        } else {
+            result = await API.post('/api/posts', data);
+        }
+        showNotification(
+            publish ? 'Published!' : 'Saved as draft!',
+            'success'
+        );
+        // Redirect to edit page with new path
+        if (result.path && result.path !== POST_PATH) {
+            window.location.href = '/editor/' + result.path;
+        }
+    } catch (e) {
+        showNotification('Save failed: ' + e.message, 'error');
+    }
+}
+
+// --- Delete ---
+async function deleteCurrentPost() {
+    if (!POST_PATH) return;
+    if (!confirm('Delete this post? This cannot be undone.')) return;
+    try {
+        await API.delete('/api/posts/' + POST_PATH);
+        showNotification('Post deleted');
+        window.location.href = '/';
+    } catch (e) {
+        showNotification('Delete failed: ' + e.message, 'error');
+    }
+}
+
+// --- Keyboard shortcut: Ctrl/Cmd+S ---
+document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        // Save as current state (draft if currently draft, published if published)
+        const isDraft = POST_PATH ? POST_PATH.startsWith('_drafts/') : true;
+        savePost(!isDraft);
+    }
+});
+
+// --- Load initial data ---
+async function init() {
+    // Set default date
+    document.getElementById('post-date').value = new Date().toISOString().split('T')[0];
+
+    // Load templates
+    try {
+        const tData = await API.get('/api/templates');
+        templates = tData.templates;
+        const select = document.getElementById('template-select');
+        for (const [key, tmpl] of Object.entries(templates)) {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = tmpl.label || key;
+            select.appendChild(opt);
+        }
+        select.addEventListener('change', () => applyTemplate(select.value));
+    } catch (e) { /* templates are optional */ }
+
+    // Load known tags & categories
+    try {
+        const [tagData, catData] = await Promise.all([
+            API.get('/api/tags'),
+            API.get('/api/categories'),
+        ]);
+        knownTags = tagData.tags || [];
+        knownCategories = catData.categories || [];
+    } catch (e) { /* non-critical */ }
+
+    // If editing existing post, load its data
+    if (POST_PATH) {
+        try {
+            const post = await API.get('/api/posts/' + POST_PATH);
+            document.getElementById('post-title').value = post.title || '';
+            document.getElementById('post-date').value = post.date || '';
+            document.getElementById('post-slug').value = post.slug || '';
+            selectedTags = new Set(post.tags || []);
+            selectedCategories = new Set(post.categories || []);
+            easyMDE.value(post.body || '');
+
+            // Update button labels based on status
+            if (!post.is_draft) {
+                document.getElementById('btn-save').innerHTML =
+                    '<i class="bi bi-arrow-down-circle me-1"></i>Unpublish (Draft)';
+                document.getElementById('btn-publish').innerHTML =
+                    '<i class="bi bi-check-lg me-1"></i>Save';
+            }
+        } catch (e) {
+            showNotification('Failed to load post: ' + e.message, 'error');
+        }
+    }
+
+    renderTags();
+    renderCategories();
+}
+
+init();
+</script>
+{% endblock %}

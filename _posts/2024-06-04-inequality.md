@@ -5,3 +5,5 @@ title: 데이터들 - 불평등(inequality)
 (tbd)
 
 주로 다루는 분야에서 파생된 관심분야입니다. 한국의 자산불평등에 대한 이야기.
+
+test_driven

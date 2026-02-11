@@ -1,0 +1,240 @@
+/* Jekyll Blog Admin — Custom Styles */
+
+:root {
+    --sidebar-width: 220px;
+    --color-draft: #ffc107;
+    --color-published: #198754;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Navbar */
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.nav-link.active {
+    font-weight: 600;
+}
+
+/* Git status badge in navbar */
+.git-badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    vertical-align: middle;
+}
+
+.git-badge.clean {
+    background: var(--color-published);
+    color: #fff;
+}
+
+.git-badge.dirty {
+    background: var(--color-draft);
+    color: #212529;
+}
+
+/* Dashboard table */
+.post-table th {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+}
+
+.post-table td {
+    vertical-align: middle;
+}
+
+.post-table tr {
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.post-table tbody tr:hover {
+    background: #e9ecef;
+}
+
+.post-title-cell {
+    font-weight: 500;
+    color: #212529;
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Status badges */
+.badge-draft {
+    background: var(--color-draft);
+    color: #212529;
+}
+
+.badge-published {
+    background: var(--color-published);
+    color: #fff;
+}
+
+/* Tag pills */
+.tag-pill {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #e9ecef;
+    color: #495057;
+    display: inline-block;
+    margin: 1px 2px;
+}
+
+.tag-pill.active,
+.tag-pill.selected {
+    background: #0d6efd;
+    color: #fff;
+}
+
+.tag-pill.clickable {
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.tag-pill.clickable:hover {
+    background: #0d6efd;
+    color: #fff;
+}
+
+/* Editor */
+.frontmatter-form .form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+
+.frontmatter-form .form-control,
+.frontmatter-form .form-select {
+    font-size: 0.9rem;
+}
+
+/* EasyMDE overrides */
+.EasyMDEContainer .CodeMirror {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    min-height: 400px;
+}
+
+.editor-toolbar {
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    border-radius: 0.375rem 0.375rem 0 0;
+}
+
+/* Drop zone */
+.drop-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    color: #adb5bd;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+}
+
+.drop-zone.drag-over {
+    border-color: #0d6efd;
+    background: #e7f1ff;
+    color: #0d6efd;
+}
+
+/* File manager */
+.file-tree {
+    font-size: 0.9rem;
+}
+
+.file-tree .dir-name {
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+}
+
+.file-tree .dir-name::before {
+    content: '\25B6';
+    display: inline-block;
+    margin-right: 6px;
+    font-size: 0.7rem;
+    transition: transform 0.15s;
+}
+
+.file-tree .dir-name.open::before {
+    transform: rotate(90deg);
+}
+
+.file-tree .file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0 4px 24px;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.file-tree .file-item:hover {
+    background: #f8f9fa;
+}
+
+.file-tree .file-name {
+    font-family: 'SF Mono', 'Menlo', monospace;
+    font-size: 0.85rem;
+}
+
+.file-tree .file-meta {
+    font-size: 0.75rem;
+    color: #adb5bd;
+    white-space: nowrap;
+}
+
+/* Toast container */
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+}
+
+/* Commit modal */
+.commit-changes-list {
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 0.85rem;
+    font-family: monospace;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .post-table .d-md-table-cell {
+        display: none !important;
+    }
+}
+
+/* Search/filter bar */
+.filter-bar {
+    background: #fff;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Content card */
+.content-card {
+    background: #fff;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}

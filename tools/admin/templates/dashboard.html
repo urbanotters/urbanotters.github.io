@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}Posts{% endblock %}
+
+{% block content %}
+<!-- Filter bar -->
+<div class="filter-bar d-flex flex-wrap align-items-center gap-2">
+    <div class="flex-grow-1">
+        <input type="text" class="form-control form-control-sm" id="search-input"
+               placeholder="Search posts...">
+    </div>
+    <select class="form-select form-select-sm" id="filter-status" style="width:auto">
+        <option value="all">All Status</option>
+        <option value="published">Published</option>
+        <option value="draft">Draft</option>
+    </select>
+    <select class="form-select form-select-sm" id="filter-category" style="width:auto">
+        <option value="all">All Categories</option>
+    </select>
+    <select class="form-select form-select-sm" id="filter-tag" style="width:auto">
+        <option value="all">All Tags</option>
+    </select>
+    <a href="/editor" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>New Post
+    </a>
+</div>
+
+<!-- Posts table -->
+<div class="content-card">
+    <div class="table-responsive">
+        <table class="table table-hover post-table mb-0">
+            <thead>
+                <tr>
+                    <th style="width:90px" class="sortable" data-sort="status">Status</th>
+                    <th style="width:110px" class="sortable" data-sort="date">Date</th>
+                    <th class="sortable" data-sort="title">Title</th>
+                    <th class="d-none d-md-table-cell" style="width:120px">Category</th>
+                    <th class="d-none d-lg-table-cell" style="width:200px">Tags</th>
+                    <th style="width:60px"></th>
+                </tr>
+            </thead>
+            <tbody id="posts-tbody">
+                <tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="post-count" class="text-muted small mt-2 px-1"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allPosts = [];
+let sortField = 'date';
+let sortAsc = false;
+
+async function loadPosts() {
+    try {
+        const data = await API.get('/api/posts');
+        allPosts = data.posts;
+        populateFilters();
+        renderPosts();
+    } catch (e) {
+        showNotification('Failed to load posts: ' + e.message, 'error');
+    }
+}
+
+function populateFilters() {
+    const cats = new Set();
+    const tags = new Set();
+    allPosts.forEach(p => {
+        (p.categories || []).forEach(c => cats.add(c));
+        (p.tags || []).forEach(t => tags.add(t));
+    });
+
+    const catSelect = document.getElementById('filter-category');
+    cats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        catSelect.appendChild(opt);
+    });
+
+    const tagSelect = document.getElementById('filter-tag');
+    tags.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        tagSelect.appendChild(opt);
+    });
+}
+
+function getFilteredPosts() {
+    const search = document.getElementById('search-input').value.toLowerCase();
+    const status = document.getElementById('filter-status').value;
+    const category = document.getElementById('filter-category').value;
+    const tag = document.getElementById('filter-tag').value;
+
+    return allPosts.filter(p => {
+        if (search && !p.title.toLowerCase().includes(search) &&
+            !p.excerpt.toLowerCase().includes(search)) return false;
+        if (status === 'published' && p.is_draft) return false;
+        if (status === 'draft' && !p.is_draft) return false;
+        if (category !== 'all' && !(p.categories || []).includes(category)) return false;
+        if (tag !== 'all' && !(p.tags || []).includes(tag)) return false;
+        return true;
+    }).sort((a, b) => {
+        let va = a[sortField] || '';
+        let vb = b[sortField] || '';
+        if (sortField === 'status') { va = a.is_draft ? 'draft' : 'published'; vb = b.is_draft ? 'draft' : 'published'; }
+        if (typeof va === 'string') va = va.toLowerCase();
+        if (typeof vb === 'string') vb = vb.toLowerCase();
+        if (va < vb) return sortAsc ? -1 : 1;
+        if (va > vb) return sortAsc ? 1 : -1;
+        return 0;
+    });
+}
+
+function renderPosts() {
+    const posts = getFilteredPosts();
+    const tbody = document.getElementById('posts-tbody');
+
+    if (posts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No posts found</td></tr>';
+        document.getElementById('post-count').textContent = '0 posts';
+        return;
+    }
+
+    tbody.innerHTML = posts.map(p => `
+        <tr onclick="window.location='/editor/${p.path}'" title="${p.excerpt}">
+            <td>
+                <span class="badge ${p.is_draft ? 'badge-draft' : 'badge-published'}">
+                    ${p.is_draft ? 'Draft' : 'Published'}
+                </span>
+            </td>
+            <td class="text-muted small">${p.date}</td>
+            <td class="post-title-cell">${escapeHtml(p.title || '(untitled)')}</td>
+            <td class="d-none d-md-table-cell">
+                ${(p.categories || []).map(c => `<span class="tag-pill">${escapeHtml(c)}</span>`).join('')}
+            </td>
+            <td class="d-none d-lg-table-cell">
+                ${(p.tags || []).map(t => `<span class="tag-pill">${escapeHtml(t)}</span>`).join('')}
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger" title="Delete"
+                        onclick="event.stopPropagation(); deletePost('${p.path}', '${escapeHtml(p.title)}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+
+    document.getElementById('post-count').textContent =
+        `${posts.length} post${posts.length !== 1 ? 's' : ''} (of ${allPosts.length} total)`;
+}
+
+async function deletePost(path, title) {
+    if (!confirm(`Delete "${title}"?\nThis cannot be undone.`)) return;
+    try {
+        await API.delete('/api/posts/' + path);
+        showNotification('Deleted: ' + title);
+        loadPosts();
+    } catch (e) {
+        showNotification('Delete failed: ' + e.message, 'error');
+    }
+}
+
+function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+// Filter & sort event listeners
+document.getElementById('search-input').addEventListener('input', renderPosts);
+document.getElementById('filter-status').addEventListener('change', renderPosts);
+document.getElementById('filter-category').addEventListener('change', renderPosts);
+document.getElementById('filter-tag').addEventListener('change', renderPosts);
+
+document.querySelectorAll('.sortable').forEach(th => {
+    th.style.cursor = 'pointer';
+    th.addEventListener('click', () => {
+        const field = th.dataset.sort;
+        if (sortField === field) {
+            sortAsc = !sortAsc;
+        } else {
+            sortField = field;
+            sortAsc = true;
+        }
+        renderPosts();
+    });
+});
+
+loadPosts();
+</script>
+{% endblock %}

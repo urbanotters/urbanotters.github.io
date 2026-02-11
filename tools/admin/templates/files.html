@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Files{% endblock %}
+
+{% block content %}
+<!-- Drop zone -->
+<div class="drop-zone" id="files-drop-zone">
+    <i class="bi bi-cloud-arrow-up fs-4"></i><br>
+    Drag &amp; drop files here to upload, or
+    <label class="text-primary" style="cursor:pointer">
+        click to browse
+        <input type="file" id="file-input" multiple hidden>
+    </label>
+</div>
+
+<!-- File tree -->
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="bi bi-folder2-open me-2"></i>Assets</h5>
+        <span id="file-count" class="text-muted small"></span>
+    </div>
+    <div id="file-tree" class="file-tree">
+        <div class="text-muted text-center py-3">Loading...</div>
+    </div>
+</div>
+
+<!-- Image preview modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="preview-filename"></h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="preview-image" class="img-fluid" alt="">
+            </div>
+            <div class="modal-footer">
+                <code id="preview-md-link" class="text-muted small me-auto"></code>
+                <button class="btn btn-sm btn-outline-primary" onclick="copyMdLink()">
+                    <i class="bi bi-clipboard me-1"></i>Copy Markdown
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
+let assetTree = {};
+let totalFiles = 0;
+
+// --- Load assets ---
+async function loadAssets() {
+    try {
+        const data = await API.get('/api/assets');
+        assetTree = data.tree;
+        totalFiles = 0;
+        const html = renderTree(assetTree, 'assets');
+        document.getElementById('file-tree').innerHTML = html || '<div class="text-muted py-3">No files found</div>';
+        document.getElementById('file-count').textContent = `${totalFiles} files`;
+    } catch (e) {
+        showNotification('Failed to load files: ' + e.message, 'error');
+    }
+}
+
+function renderTree(node, basePath, depth = 0) {
+    let html = '';
+    const entries = Object.entries(node).sort(([a, av], [b, bv]) => {
+        // Directories first
+        const aDir = av._type === 'dir' ? 0 : 1;
+        const bDir = bv._type === 'dir' ? 0 : 1;
+        if (aDir !== bDir) return aDir - bDir;
+        return a.localeCompare(b);
+    });
+
+    for (const [name, info] of entries) {
+        if (name.startsWith('_')) continue;
+
+        if (info._type === 'dir') {
+            const childPath = basePath + '/' + name;
+            const childHtml = renderTree(info._children || {}, childPath, depth + 1);
+            html += `
+                <div style="padding-left:${depth * 16}px">
+                    <div class="dir-name open" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('d-none')">
+                        <i class="bi bi-folder-fill text-warning me-1"></i>${name}
+                    </div>
+                    <div class="dir-children">${childHtml}</div>
+                </div>`;
+        } else if (info._type === 'file') {
+            totalFiles++;
+            const ext = name.split('.').pop().toLowerCase();
+            const isImage = imageExts.includes(ext);
+            const relPath = basePath + '/' + name;
+            // Remove leading "assets/" for the API path
+            const apiPath = relPath.replace(/^assets\//, '');
+
+            html += `
+                <div class="file-item" style="padding-left:${(depth + 1) * 16}px">
+                    <div class="d-flex align-items-center gap-2 flex-grow-1 overflow-hidden">
+                        <i class="bi ${isImage ? 'bi-image text-success' : 'bi-file-earmark text-secondary'}"></i>
+                        <span class="file-name text-truncate"
+                              ${isImage ? `style="cursor:pointer" onclick="previewImage('${name}', '${relPath}')"` : ''}>
+                            ${name}
+                        </span>
+                        <span class="file-meta">${formatSize(info.size)}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-1" title="Check usage"
+                                onclick="checkUsage('${apiPath}', '${name}')">
+                            <i class="bi bi-link-45deg"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-1" title="Copy markdown link"
+                                onclick="copyLink('${name}', '${relPath}')">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger py-0 px-1" title="Delete"
+                                onclick="deleteAsset('${apiPath}', '${name}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>`;
+        }
+    }
+    return html;
+}
+
+// --- Upload ---
+const dropZone = document.getElementById('files-drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    await uploadFiles(e.dataTransfer.files);
+});
+
+fileInput.addEventListener('change', async () => {
+    await uploadFiles(fileInput.files);
+    fileInput.value = '';
+});
+
+async function uploadFiles(files) {
+    for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const result = await API.upload('/api/assets/upload', formData);
+            showNotification(`Uploaded: ${result.filename}`);
+        } catch (e) {
+            showNotification(`Failed to upload ${file.name}: ${e.message}`, 'error');
+        }
+    }
+    loadAssets();
+}
+
+// --- Actions ---
+async function deleteAsset(apiPath, name) {
+    if (!confirm(`Delete "${name}"?`)) return;
+    try {
+        await API.delete('/api/assets/' + apiPath);
+        showNotification('Deleted: ' + name);
+        loadAssets();
+    } catch (e) {
+        showNotification('Delete failed: ' + e.message, 'error');
+    }
+}
+
+async function checkUsage(apiPath, name) {
+    try {
+        const data = await API.get('/api/assets/' + apiPath + '/usage');
+        if (data.references.length === 0) {
+            showNotification(`"${name}" is not referenced by any post`, 'info');
+        } else {
+            showNotification(`"${name}" used in: ${data.references.join(', ')}`, 'info');
+        }
+    } catch (e) {
+        showNotification('Usage check failed: ' + e.message, 'error');
+    }
+}
+
+function copyLink(filename, relPath) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const md = imageExts.includes(ext)
+        ? `![${filename}](/${relPath})`
+        : `[${filename}](/${relPath})`;
+    navigator.clipboard.writeText(md).then(() => {
+        showNotification('Copied markdown link');
+    });
+}
+
+function previewImage(filename, relPath) {
+    document.getElementById('preview-filename').textContent = filename;
+    document.getElementById('preview-image').src = '/' + relPath;
+    const md = `![${filename}](/${relPath})`;
+    document.getElementById('preview-md-link').textContent = md;
+    new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+
+function copyMdLink() {
+    const md = document.getElementById('preview-md-link').textContent;
+    navigator.clipboard.writeText(md).then(() => showNotification('Copied!'));
+}
+
+loadAssets();
+</script>
+{% endblock %}

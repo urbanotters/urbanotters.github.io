@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} — Blog Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+    <link href="/static/admin.css" rel="stylesheet">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-journal-text me-1"></i> Blog Admin
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/' %}active{% endif %}"
+                       href="/"><i class="bi bi-list-ul me-1"></i>Posts</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/editor' in request.path %}active{% endif %}"
+                       href="/editor"><i class="bi bi-pencil-square me-1"></i>New Post</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/files' %}active{% endif %}"
+                       href="/files"><i class="bi bi-folder2-open me-1"></i>Files</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center gap-3">
+                <!-- Git status -->
+                <span class="text-light small">
+                    <i class="bi bi-git me-1"></i>
+                    <span id="git-branch" class="me-1">—</span>
+                    <span id="git-status-badge" class="git-badge">…</span>
+                </span>
+                <!-- Commit button -->
+                <button class="btn btn-sm btn-outline-light" onclick="openCommitModal()">
+                    <i class="bi bi-cloud-arrow-up me-1"></i>Commit &amp; Push
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main content -->
+<main class="container-fluid py-3">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Commit Modal -->
+<div class="modal fade" id="commitModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-git me-2"></i>Commit & Push</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-2">Changes to commit:</p>
+                <div id="commit-changes-list" class="commit-changes-list border rounded p-2 mb-3">
+                    Loading...
+                </div>
+                <label for="commit-message" class="form-label small">
+                    Commit message (leave empty for auto-generated)
+                </label>
+                <input type="text" class="form-control" id="commit-message"
+                       placeholder="Auto-generated if empty">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn-do-commit"
+                        onclick="doCommitPush()">
+                    <i class="bi bi-cloud-arrow-up me-1"></i>Commit & Push
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/admin.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
