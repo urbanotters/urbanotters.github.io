@@ -45,6 +45,22 @@
   color: #fff;
 }
 
+/* --- Mobile Topbar Touch Fix --- */
+
+@media all and (max-width: 849px) {
+  #sidebar-trigger {
+    padding: 0.5rem 0.75rem !important;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  #search-trigger {
+    padding: 0.5rem 0.75rem !important;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 /* --- Academic Profile Landing --- */
 
 .profile-header {
