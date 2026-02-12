@@ -34,8 +34,16 @@
                        href="/editor"><i class="bi bi-pencil-square me-1"></i>New Post</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/pages' %}active{% endif %}"
+                       href="/pages"><i class="bi bi-layout-text-sidebar me-1"></i>Pages</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {% if request.path == '/files' %}active{% endif %}"
                        href="/files"><i class="bi bi-folder2-open me-1"></i>Files</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/preview' %}active{% endif %}"
+                       href="/preview"><i class="bi bi-eye me-1"></i>Preview</a>
                 </li>
             </ul>
             <div class="d-flex align-items-center gap-3">

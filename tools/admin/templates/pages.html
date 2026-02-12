@@ -1,0 +1,523 @@
+{% extends "base.html" %}
+{% block title %}Pages{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-3"><i class="bi bi-layout-text-sidebar me-2"></i>Site Pages</h4>
+
+        <!-- Tab navigation -->
+        <ul class="nav nav-tabs mb-3" id="pageTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-home"
+                        type="button">
+                    <i class="bi bi-house me-1"></i>Home
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cv"
+                        type="button">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>CV
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-publications"
+                        type="button">
+                    <i class="bi bi-pen me-1"></i>Publications
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-contact"
+                        type="button">
+                    <i class="bi bi-envelope me-1"></i>Contact
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-sidebar"
+                        type="button">
+                    <i class="bi bi-layout-sidebar me-1"></i>Sidebar
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+
+            <!-- ============ HOME TAB ============ -->
+            <div class="tab-pane fade show active" id="tab-home">
+
+                <!-- Language sub-tabs -->
+                <ul class="nav nav-pills mb-3" id="homeLangTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-lang="en"
+                                onclick="switchHomeLang('en')">
+                            English
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-lang="ko"
+                                onclick="switchHomeLang('ko')">
+                            Korean
+                        </button>
+                    </li>
+                </ul>
+
+                <form id="profile-form" onsubmit="saveCurrentProfile(event)">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" id="lbl-name-primary">Name (English)</label>
+                            <input type="text" class="form-control" id="pf-name-primary">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" id="lbl-name-secondary">이름 (한국어)</label>
+                            <input type="text" class="form-control" id="pf-name-secondary">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" id="lbl-affiliation">Affiliation</label>
+                            <input type="text" class="form-control" id="pf-affiliation">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" id="lbl-bio">Bio</label>
+                            <textarea class="form-control" id="pf-bio" rows="2"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Research Interests</label>
+                            <input type="text" class="form-control" id="pf-keywords"
+                                   placeholder="keyword · separated · by ·">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Thesis</label>
+                            <input type="text" class="form-control" id="pf-thesis"
+                                   placeholder="Provisional thesis title">
+                        </div>
+
+                        <!-- Recent Publications on Home -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">
+                                Recent Publications <span class="text-muted fw-normal" id="lbl-pubs-hint">(shown on EN Home)</span>
+                            </label>
+                            <div id="pf-pubs-list"></div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mt-2"
+                                    onclick="addPubRow()">
+                                <i class="bi bi-plus me-1"></i>Add
+                            </button>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary" id="btn-save-profile">
+                                <i class="bi bi-check-lg me-1"></i>Save English
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ============ CV TAB ============ -->
+            <div class="tab-pane fade" id="tab-cv">
+
+                <!-- CV Language sub-tabs -->
+                <ul class="nav nav-pills mb-3" id="cvLangTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-lang="en"
+                                onclick="switchCvLang('en')">English</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-lang="ko"
+                                onclick="switchCvLang('ko')">Korean</button>
+                    </li>
+                </ul>
+
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title" id="cv-card-title">Current CV (English)</h6>
+                                <div id="cv-current" class="text-muted mb-3">Loading...</div>
+
+                                <label class="form-label fw-semibold">Upload new CV (PDF)</label>
+                                <div class="cv-upload-zone border rounded p-4 text-center mb-3"
+                                     id="cv-drop-zone">
+                                    <i class="bi bi-cloud-arrow-up fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2 mb-1">Drag & drop PDF here</p>
+                                    <p class="text-muted small mb-2">or</p>
+                                    <label class="btn btn-outline-primary btn-sm">
+                                        Choose file
+                                        <input type="file" accept=".pdf" id="cv-file-input"
+                                               class="d-none" onchange="uploadCV(this.files[0])">
+                                    </label>
+                                </div>
+                                <div id="cv-upload-status"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Preview</h6>
+                                <iframe id="cv-preview-frame" class="border w-100"
+                                        style="height: 400px;"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ PUBLICATIONS TAB ============ -->
+            <div class="tab-pane fade" id="tab-publications">
+                <form id="pub-form" onsubmit="savePublications(event)">
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Markdown</span>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-check-lg me-1"></i>Save Publications
+                        </button>
+                    </div>
+                    <textarea id="pub-editor" class="form-control font-monospace"
+                              rows="25" style="tab-size: 2;"></textarea>
+                </form>
+            </div>
+
+            <!-- ============ CONTACT TAB ============ -->
+            <div class="tab-pane fade" id="tab-contact">
+                <form id="contact-form" onsubmit="saveContact(event)">
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Markdown — _tabs/contact.md</span>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-check-lg me-1"></i>Save Contact
+                        </button>
+                    </div>
+                    <textarea id="contact-editor" class="form-control font-monospace"
+                              rows="20" style="tab-size: 2;"></textarea>
+                </form>
+            </div>
+
+            <!-- ============ SIDEBAR TAB ============ -->
+            <div class="tab-pane fade" id="tab-sidebar">
+                <form id="sidebar-form" onsubmit="saveSidebar(event)">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <h6 class="text-muted">Site Info (_config.yml)</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Title</label>
+                            <input type="text" class="form-control" id="sb-title">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Avatar Path</label>
+                            <input type="text" class="form-control" id="sb-avatar"
+                                   placeholder="/assets/img/avatar.png">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Tagline</label>
+                            <input type="text" class="form-control" id="sb-tagline">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Author Name</label>
+                            <input type="text" class="form-control" id="sb-social-name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" class="form-control" id="sb-social-email">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">GitHub Username</label>
+                            <input type="text" class="form-control" id="sb-github">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Twitter/X Username</label>
+                            <input type="text" class="form-control" id="sb-twitter">
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="text-muted">Contact Icons (_data/contact.yml)</h6>
+                        </div>
+                        <div class="col-12">
+                            <textarea id="sb-contact-yml" class="form-control font-monospace"
+                                      rows="12" style="tab-size: 2;"></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Save Sidebar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+        </div><!-- /tab-content -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Language state ──
+let currentLang = 'en';
+
+function switchHomeLang(lang) {
+    currentLang = lang;
+    // Update pill active state
+    document.querySelectorAll('#homeLangTabs .nav-link').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    // Update labels
+    if (lang === 'ko') {
+        document.getElementById('lbl-name-primary').textContent = '이름 (한국어)';
+        document.getElementById('lbl-name-secondary').textContent = 'Name (English)';
+        document.getElementById('lbl-affiliation').textContent = '소속';
+        document.getElementById('lbl-bio').textContent = '소개 (Bio)';
+        document.getElementById('lbl-pubs-hint').textContent = '(Home에 표시)';
+        document.getElementById('btn-save-profile').innerHTML =
+            '<i class="bi bi-check-lg me-1"></i>Save Korean';
+    } else {
+        document.getElementById('lbl-name-primary').textContent = 'Name (English)';
+        document.getElementById('lbl-name-secondary').textContent = '이름 (한국어)';
+        document.getElementById('lbl-affiliation').textContent = 'Affiliation';
+        document.getElementById('lbl-bio').textContent = 'Bio';
+        document.getElementById('lbl-pubs-hint').textContent = '(shown on EN Home)';
+        document.getElementById('btn-save-profile').innerHTML =
+            '<i class="bi bi-check-lg me-1"></i>Save English';
+    }
+    loadProfile(lang);
+}
+
+// ── Home profile ──
+
+async function loadProfile(lang) {
+    lang = lang || currentLang;
+    const endpoint = lang === 'en' ? '/api/pages/profile-en' : '/api/pages/profile';
+    const res = await fetch(endpoint);
+    const data = await res.json();
+
+    document.getElementById('pf-name-primary').value = data.name_primary || '';
+    document.getElementById('pf-name-secondary').value = data.name_secondary || '';
+    document.getElementById('pf-affiliation').value = data.affiliation || '';
+    document.getElementById('pf-bio').value = data.bio || '';
+    document.getElementById('pf-keywords').value = data.keywords || '';
+    document.getElementById('pf-thesis').value = data.thesis || '';
+
+    // Recent publications
+    const container = document.getElementById('pf-pubs-list');
+    container.innerHTML = '';
+    (data.recent_publications || []).forEach(p => addPubRow(p));
+}
+
+function addPubRow(data) {
+    const container = document.getElementById('pf-pubs-list');
+    const row = document.createElement('div');
+    row.className = 'row g-2 mb-2 pub-row';
+    row.innerHTML = `
+        <div class="col-5">
+            <input type="text" class="form-control form-control-sm pub-title"
+                   placeholder="Title" value="${(data && data.title) || ''}">
+        </div>
+        <div class="col-4">
+            <input type="url" class="form-control form-control-sm pub-url"
+                   placeholder="URL" value="${(data && data.url) || ''}">
+        </div>
+        <div class="col-2">
+            <input type="text" class="form-control form-control-sm pub-source"
+                   placeholder="Source, Year" value="${(data && data.source) || ''}">
+        </div>
+        <div class="col-1">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.pub-row').remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(row);
+}
+
+async function saveCurrentProfile(e) {
+    e.preventDefault();
+    const pubs = [];
+    document.querySelectorAll('.pub-row').forEach(row => {
+        const title = row.querySelector('.pub-title').value.trim();
+        const url = row.querySelector('.pub-url').value.trim();
+        const source = row.querySelector('.pub-source').value.trim();
+        if (title) pubs.push({ title, url, source });
+    });
+
+    const payload = {
+        name_primary: document.getElementById('pf-name-primary').value,
+        name_secondary: document.getElementById('pf-name-secondary').value,
+        affiliation: document.getElementById('pf-affiliation').value,
+        bio: document.getElementById('pf-bio').value,
+        keywords: document.getElementById('pf-keywords').value,
+        thesis: document.getElementById('pf-thesis').value,
+        recent_publications: pubs,
+    };
+
+    const endpoint = currentLang === 'en' ? '/api/pages/profile-en' : '/api/pages/profile';
+    const res = await fetch(endpoint, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+        const label = currentLang === 'en' ? 'English' : 'Korean';
+        showToast(`${label} Home saved`, 'success');
+    } else {
+        showToast('Save failed', 'danger');
+    }
+}
+
+// ── CV ──
+let currentCvLang = 'en';
+
+function switchCvLang(lang) {
+    currentCvLang = lang;
+    document.querySelectorAll('#cvLangTabs .nav-link').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    const label = lang === 'en' ? 'English' : 'Korean';
+    document.getElementById('cv-card-title').textContent = `Current CV (${label})`;
+    document.getElementById('cv-upload-status').innerHTML = '';
+    loadCV(lang);
+}
+
+async function loadCV(lang) {
+    lang = lang || currentCvLang;
+    const endpoint = lang === 'en' ? '/api/pages/cv-en' : '/api/pages/cv';
+    const res = await fetch(endpoint);
+    const data = await res.json();
+    const el = document.getElementById('cv-current');
+    if (data.exists) {
+        const sizeKB = (data.size / 1024).toFixed(0);
+        el.innerHTML = `<i class="bi bi-file-earmark-pdf text-danger me-1"></i>
+            <code>${data.pdf_path}</code> <span class="text-muted">(${sizeKB} KB)</span>`;
+        document.getElementById('cv-preview-frame').src = data.pdf_path;
+    } else {
+        el.innerHTML = '<span class="text-warning">No CV uploaded yet</span>';
+        document.getElementById('cv-preview-frame').src = '';
+    }
+}
+
+async function uploadCV(file) {
+    if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
+        showToast('PDF files only', 'warning');
+        return;
+    }
+    const status = document.getElementById('cv-upload-status');
+    status.innerHTML = '<span class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Uploading...</span>';
+
+    const form = new FormData();
+    form.append('file', file);
+    const endpoint = currentCvLang === 'en' ? '/api/pages/cv-en/upload' : '/api/pages/cv/upload';
+    const res = await fetch(endpoint, { method: 'POST', body: form });
+    const data = await res.json();
+    if (res.ok) {
+        status.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Uploaded: ${data.filename}</span>`;
+        loadCV(currentCvLang);
+        const label = currentCvLang === 'en' ? 'English' : 'Korean';
+        showToast(`${label} CV uploaded`, 'success');
+    } else {
+        status.innerHTML = '<span class="text-danger">Upload failed</span>';
+        showToast('Upload failed', 'danger');
+    }
+}
+
+// CV drag & drop
+const cvDrop = document.getElementById('cv-drop-zone');
+cvDrop.addEventListener('dragover', e => { e.preventDefault(); cvDrop.classList.add('border-primary'); });
+cvDrop.addEventListener('dragleave', () => cvDrop.classList.remove('border-primary'));
+cvDrop.addEventListener('drop', e => {
+    e.preventDefault();
+    cvDrop.classList.remove('border-primary');
+    if (e.dataTransfer.files.length) uploadCV(e.dataTransfer.files[0]);
+});
+
+// ── Publications ──
+
+async function loadPublications() {
+    const res = await fetch('/api/pages/publications');
+    const data = await res.json();
+    document.getElementById('pub-editor').value = data.body || '';
+}
+
+async function savePublications(e) {
+    e.preventDefault();
+    const body = document.getElementById('pub-editor').value;
+    const res = await fetch('/api/pages/publications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body }),
+    });
+    if (res.ok) {
+        showToast('Publications saved', 'success');
+    } else {
+        showToast('Save failed', 'danger');
+    }
+}
+
+// ── Contact ──
+
+async function loadContact() {
+    const res = await fetch('/api/pages/contact');
+    const data = await res.json();
+    document.getElementById('contact-editor').value = data.body || '';
+}
+
+async function saveContact(e) {
+    e.preventDefault();
+    const body = document.getElementById('contact-editor').value;
+    const res = await fetch('/api/pages/contact', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body }),
+    });
+    if (res.ok) {
+        showToast('Contact saved', 'success');
+    } else {
+        showToast('Save failed', 'danger');
+    }
+}
+
+// ── Sidebar ──
+
+async function loadSidebar() {
+    const res = await fetch('/api/pages/sidebar');
+    const data = await res.json();
+    document.getElementById('sb-title').value = data.title || '';
+    document.getElementById('sb-tagline').value = data.tagline || '';
+    document.getElementById('sb-avatar').value = data.avatar || '';
+    document.getElementById('sb-social-name').value = data.social_name || '';
+    document.getElementById('sb-social-email').value = data.social_email || '';
+    document.getElementById('sb-github').value = data.github_username || '';
+    document.getElementById('sb-twitter').value = data.twitter_username || '';
+    document.getElementById('sb-contact-yml').value = data.contact_yml || '';
+}
+
+async function saveSidebar(e) {
+    e.preventDefault();
+    const payload = {
+        title: document.getElementById('sb-title').value,
+        tagline: document.getElementById('sb-tagline').value,
+        avatar: document.getElementById('sb-avatar').value,
+        social_name: document.getElementById('sb-social-name').value,
+        social_email: document.getElementById('sb-social-email').value,
+        github_username: document.getElementById('sb-github').value,
+        twitter_username: document.getElementById('sb-twitter').value,
+        contact_yml: document.getElementById('sb-contact-yml').value,
+    };
+    const res = await fetch('/api/pages/sidebar', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+        showToast('Sidebar saved — Jekyll restarting...', 'success');
+    } else {
+        showToast('Save failed', 'danger');
+    }
+}
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', () => {
+    loadProfile('en');
+    loadCV('en');
+    loadPublications();
+    loadContact();
+    loadSidebar();
+});
+</script>
+{% endblock %}

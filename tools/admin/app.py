@@ -12,6 +12,7 @@ import subprocess
 from datetime import date, datetime
 from typing import Optional, List, Tuple, Dict
 
+import yaml
 import frontmatter
 from flask import (
     Flask, render_template, request, jsonify, abort, send_from_directory
@@ -96,6 +97,41 @@ def safe_path(requested: str, allowed_base: str) -> str:
 
 def _ext(filename: str) -> str:
     return filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+
+
+def _trigger_jekyll_rebuild() -> None:
+    """Touch index.html to trigger Jekyll auto-regeneration."""
+    index_file = os.path.join(BLOG_ROOT, 'index.html')
+    if os.path.isfile(index_file):
+        os.utime(index_file, None)
+
+
+def _restart_jekyll() -> None:
+    """Kill and restart Jekyll serve (needed after _config.yml changes)."""
+    import signal
+    # Find jekyll process
+    try:
+        result = subprocess.run(
+            ['pgrep', '-f', 'jekyll serve'],
+            capture_output=True, text=True, timeout=5,
+        )
+        for pid_str in result.stdout.strip().splitlines():
+            pid = int(pid_str)
+            os.kill(pid, signal.SIGTERM)
+    except Exception:
+        pass
+
+    # Wait briefly for old process to die
+    import time
+    time.sleep(2)
+
+    # Restart Jekyll in background
+    subprocess.Popen(
+        ['bundle', 'exec', 'jekyll', 'serve', '--port', '4000', '--livereload'],
+        cwd=BLOG_ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
 # ---------------------------------------------------------------------------
 # Helpers — posts
@@ -369,6 +405,462 @@ def editor_edit(post_path):
 @app.route('/files')
 def file_manager():
     return render_template('files.html')
+
+@app.route('/preview')
+def preview():
+    return render_template('preview.html')
+
+@app.route('/pages')
+def pages():
+    return render_template('pages.html')
+
+# ---------------------------------------------------------------------------
+# API — site pages (Home profile, CV, Publications)
+# ---------------------------------------------------------------------------
+
+PROFILE_LAYOUT = os.path.join(BLOG_ROOT, '_layouts', 'profile.html')
+PROFILE_EN_LAYOUT = os.path.join(BLOG_ROOT, '_layouts', 'profile-en.html')
+CV_TAB = os.path.join(BLOG_ROOT, '_tabs', 'cv.md')
+CV_EN_TAB = os.path.join(BLOG_ROOT, '_tabs', 'cv-en.md')
+PUBLICATIONS_TAB = os.path.join(BLOG_ROOT, '_tabs', 'publications.md')
+CONTACT_TAB = os.path.join(BLOG_ROOT, '_tabs', 'contact.md')
+
+
+def _parse_profile(filepath: str = PROFILE_LAYOUT) -> dict:
+    """Parse a profile layout into editable fields."""
+    content = open(filepath, 'r', encoding='utf-8').read()
+
+    def _extract(pattern: str, default: str = '') -> str:
+        m = re.search(pattern, content, re.DOTALL)
+        return m.group(1).strip() if m else default
+
+    # name_primary is the main name shown in <h1>, name_secondary in <span>
+    name_primary = _extract(r'<h1[^>]*>([^<]+)<span')
+    name_secondary = _extract(r'class="profile-name-en"[^>]*>/\s*(.+?)</span>')
+    affiliation = _extract(r'class="profile-affiliation[^"]*"[^>]*>(.+?)</p>')
+    bio_raw = _extract(r'class="profile-bio[^"]*"[^>]*>\s*(.+?)\s*</p>')
+    bio = re.sub(r'\s*<br>\s*', '\n', bio_raw)
+    keywords = _extract(r'class="profile-keywords"[^>]*>\s*(.+?)\s*</p>')
+    cv_pdf = _extract(r'href="([^"]+)"[^>]*title="CV \(PDF\)"')
+
+    # Parse thesis
+    thesis = _extract(r'<!-- Thesis -->.*?<p[^>]*>\s*(.+?)\s*</p>')
+
+    # Parse links
+    links = {}
+    link_map = {
+        'linkedin': r'href="(https://www\.linkedin\.com/[^"]*)"',
+        'github': r'href="(https://github\.com/[^"]*)"',
+        'twitter': r'href="(https://(?:twitter|x)\.com/[^"]*)"',
+        'email': r'href="mailto:([^"]*)"',
+    }
+    for key, pat in link_map.items():
+        m = re.search(pat, content)
+        if m:
+            links[key] = m.group(1)
+
+    # Parse recent publications
+    pubs = []
+    for m in re.finditer(r'<li><a href="([^"]+)">(.+?)</a>\s*<span[^>]*>(.+?)</span></li>', content):
+        pubs.append({'url': m.group(1), 'title': m.group(2), 'source': m.group(3)})
+
+    return {
+        'name_primary': name_primary,
+        'name_secondary': name_secondary,
+        'affiliation': affiliation,
+        'bio': bio,
+        'keywords': keywords,
+        'thesis': thesis,
+        'cv_pdf': cv_pdf,
+        'links': links,
+        'recent_publications': pubs,
+    }
+
+
+def _save_profile(data: dict, lang: str = 'ko') -> None:
+    """Rebuild profile layout from data. lang='ko' or 'en'."""
+    pubs_html = ''
+    for p in data.get('recent_publications', []):
+        if p.get('url') and p.get('title'):
+            pubs_html += '      <li><a href="{url}">{title}</a> <span class="text-muted">{source}</span></li>\n'.format(**p)
+
+    if lang == 'ko':
+        lang_switch = ('  <!-- Language switch -->\n'
+                       '  <div class="text-end mb-2">\n'
+                       '    <a href="/" class="btn btn-sm btn-outline-secondary">EN</a>\n'
+                       '    <span class="btn btn-sm btn-dark disabled">KR</span>\n'
+                       '  </div>\n\n')
+        heading = '{name_primary} <span class="profile-name-en">/ {name_secondary}</span>'
+        filepath = PROFILE_LAYOUT
+    else:
+        lang_switch = ('  <!-- Language switch -->\n'
+                       '  <div class="text-end mb-2">\n'
+                       '    <span class="btn btn-sm btn-dark disabled">EN</span>\n'
+                       '    <a href="/ko/" class="btn btn-sm btn-outline-secondary">KR</a>\n'
+                       '  </div>\n\n')
+        heading = '{name_primary} <span class="profile-name-en">/ {name_secondary}</span>'
+        filepath = PROFILE_EN_LAYOUT
+
+    html = '''---
+layout: default
+---
+
+{{% include lang.html %}}
+
+<article class="px-1">
+{lang_switch}  <!-- Header -->
+  <div class="profile-header mb-4">
+    <h1 class="mt-0 mb-1">{heading}</h1>
+    <p class="profile-affiliation mb-2">{affiliation}</p>
+    <p class="profile-bio text-muted">
+      {bio}
+    </p>
+  </div>
+
+  <!-- Research Interests -->
+  <div class="profile-section">
+    <h2 class="profile-section-title">Research Interests</h2>
+    <p class="profile-keywords">
+      {keywords}
+    </p>
+  </div>
+
+  <!-- Thesis -->
+  <div class="profile-section">
+    <h2 class="profile-section-title">Thesis</h2>
+    <p class="text-muted fst-italic">
+      {thesis}
+    </p>
+  </div>
+
+  <!-- Recent Publications -->
+  <div class="profile-section">
+    <h2 class="profile-section-title">Recent Publications</h2>
+    <ul class="profile-list">
+{pubs_html}    </ul>
+    <a href="/publications/" class="profile-see-all">See all &rarr;</a>
+  </div>
+
+  <!-- Latest Posts -->
+  <div class="profile-section">
+    <h2 class="profile-section-title">Latest Posts</h2>
+    <ul class="profile-list">
+      {{% assign recent_posts = site.posts | where_exp: 'item', 'item.hidden != true' %}}
+      {{% for post in recent_posts limit: 3 %}}
+        <li>
+          <a href="{{{{ post.url | relative_url }}}}">{{{{ post.title }}}}</a>
+          <span class="text-muted">{{{{ post.date | date: "%Y.%m" }}}}</span>
+        </li>
+      {{% endfor %}}
+    </ul>
+    <a href="/blog/" class="profile-see-all">See all &rarr;</a>
+  </div>
+</article>
+'''.format(
+        lang_switch=lang_switch,
+        heading=heading.format(
+            name_primary=data.get('name_primary', ''),
+            name_secondary=data.get('name_secondary', ''),
+        ),
+        affiliation=data.get('affiliation', ''),
+        bio=data.get('bio', '').replace('\n', '<br>\n      '),
+        keywords=data.get('keywords', ''),
+        thesis=data.get('thesis', ''),
+        pubs_html=pubs_html,
+    )
+
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(html)
+
+
+@app.route('/api/pages/profile', methods=['GET'])
+def api_get_profile():
+    return jsonify(_parse_profile(PROFILE_LAYOUT))
+
+
+@app.route('/api/pages/profile', methods=['PUT'])
+def api_save_profile():
+    data = request.get_json(force=True)
+    _save_profile(data, lang='ko')
+    _trigger_jekyll_rebuild()
+    return jsonify({'status': 'saved'})
+
+
+@app.route('/api/pages/profile-en', methods=['GET'])
+def api_get_profile_en():
+    return jsonify(_parse_profile(PROFILE_EN_LAYOUT))
+
+
+@app.route('/api/pages/profile-en', methods=['PUT'])
+def api_save_profile_en():
+    data = request.get_json(force=True)
+    _save_profile(data, lang='en')
+    _trigger_jekyll_rebuild()
+    return jsonify({'status': 'saved'})
+
+
+@app.route('/api/pages/cv', methods=['GET'])
+def api_get_cv():
+    """Return current CV PDF path."""
+    content = open(CV_TAB, 'r', encoding='utf-8').read()
+    m = re.search(r'src="([^"]+)"', content)
+    pdf_path = m.group(1) if m else ''
+    # Check file exists
+    abs_pdf = os.path.join(BLOG_ROOT, pdf_path.lstrip('/')) if pdf_path else ''
+    exists = os.path.isfile(abs_pdf) if abs_pdf else False
+    size = os.path.getsize(abs_pdf) if exists else 0
+    return jsonify({'pdf_path': pdf_path, 'exists': exists, 'size': size})
+
+
+@app.route('/api/pages/cv/upload', methods=['POST'])
+def api_upload_cv():
+    """Upload a new CV PDF and update cv.md + profile.html references."""
+    if 'file' not in request.files:
+        abort(400, 'No file provided')
+    file = request.files['file']
+    if not file.filename or _ext(file.filename) != 'pdf':
+        abort(400, 'Only PDF files allowed')
+
+    safe_name = secure_filename(file.filename)
+    if not safe_name:
+        safe_name = 'resume.pdf'
+
+    dest_dir = os.path.join(ASSETS_DIR, 'docs')
+    os.makedirs(dest_dir, exist_ok=True)
+    dest = os.path.join(dest_dir, safe_name)
+    file.save(dest)
+
+    rel_path = '/' + os.path.relpath(dest, BLOG_ROOT)
+
+    # Update cv.md
+    cv_content = '''---
+title: CV
+icon: fas fa-file-alt
+order: 1
+---
+
+<div class="cv-embed">
+  <iframe src="{path}" title="CV / Resume"></iframe>
+</div>
+
+<p class="text-center mt-3">
+  <a href="{path}" class="btn btn-outline-primary btn-sm" download>
+    <i class="fas fa-download me-1"></i>Download PDF
+  </a>
+</p>
+'''.format(path=rel_path)
+
+    with open(CV_TAB, 'w', encoding='utf-8') as f:
+        f.write(cv_content)
+
+    # Update both profile layouts' CV link
+    for layout_path, lang in [(PROFILE_LAYOUT, 'ko'), (PROFILE_EN_LAYOUT, 'en')]:
+        try:
+            profile = _parse_profile(layout_path)
+            profile['cv_pdf'] = rel_path
+            _save_profile(profile, lang=lang)
+        except Exception:
+            pass  # profile update is best-effort
+
+    _trigger_jekyll_rebuild()
+    return jsonify({'status': 'uploaded', 'path': rel_path, 'filename': safe_name})
+
+
+def _get_cv_pdf(tab_path: str) -> dict:
+    """Read a CV tab file and return PDF info."""
+    if not os.path.isfile(tab_path):
+        return {'pdf_path': '', 'exists': False, 'size': 0}
+    content = open(tab_path, 'r', encoding='utf-8').read()
+    m = re.search(r'src="([^"]+)"', content)
+    pdf_path = m.group(1) if m else ''
+    abs_pdf = os.path.join(BLOG_ROOT, pdf_path.lstrip('/')) if pdf_path else ''
+    exists = os.path.isfile(abs_pdf) if abs_pdf else False
+    size = os.path.getsize(abs_pdf) if exists else 0
+    return {'pdf_path': pdf_path, 'exists': exists, 'size': size}
+
+
+def _upload_cv(tab_path: str, title: str) -> dict:
+    """Handle CV PDF upload for a given tab file."""
+    if 'file' not in request.files:
+        abort(400, 'No file provided')
+    file = request.files['file']
+    if not file.filename or _ext(file.filename) != 'pdf':
+        abort(400, 'Only PDF files allowed')
+
+    safe_name = secure_filename(file.filename)
+    if not safe_name:
+        safe_name = 'resume.pdf'
+
+    dest_dir = os.path.join(ASSETS_DIR, 'docs')
+    os.makedirs(dest_dir, exist_ok=True)
+    dest = os.path.join(dest_dir, safe_name)
+    file.save(dest)
+
+    rel_path = '/' + os.path.relpath(dest, BLOG_ROOT)
+
+    cv_content = '''---
+title: {title}
+icon: fas fa-file-alt
+order: 1
+---
+
+<div class="cv-embed">
+  <iframe src="{path}" title="CV / Resume"></iframe>
+</div>
+
+<p class="text-center mt-3">
+  <a href="{path}" class="btn btn-outline-primary btn-sm" download>
+    <i class="fas fa-download me-1"></i>Download PDF
+  </a>
+</p>
+'''.format(title=title, path=rel_path)
+
+    with open(tab_path, 'w', encoding='utf-8') as f:
+        f.write(cv_content)
+
+    _trigger_jekyll_rebuild()
+    return {'status': 'uploaded', 'path': rel_path, 'filename': safe_name}
+
+
+@app.route('/api/pages/cv-en', methods=['GET'])
+def api_get_cv_en():
+    return jsonify(_get_cv_pdf(CV_EN_TAB))
+
+
+@app.route('/api/pages/cv-en/upload', methods=['POST'])
+def api_upload_cv_en():
+    result = _upload_cv(CV_EN_TAB, 'CV (EN)')
+    return jsonify(result)
+
+
+@app.route('/api/pages/publications', methods=['GET'])
+def api_get_publications():
+    """Return publications.md body (markdown after front matter)."""
+    post = frontmatter.load(PUBLICATIONS_TAB)
+    return jsonify({'body': post.content, 'title': post.metadata.get('title', 'Publications')})
+
+
+@app.route('/api/pages/publications', methods=['PUT'])
+def api_save_publications():
+    """Save publications.md body."""
+    data = request.get_json(force=True)
+    post = frontmatter.load(PUBLICATIONS_TAB)
+    post.content = data.get('body', '')
+    with open(PUBLICATIONS_TAB, 'w', encoding='utf-8') as f:
+        f.write(frontmatter.dumps(post) + '\n')
+    _trigger_jekyll_rebuild()
+    return jsonify({'status': 'saved'})
+
+
+# ---------------------------------------------------------------------------
+# API — contact page (_tabs/contact.md)
+# ---------------------------------------------------------------------------
+
+@app.route('/api/pages/contact', methods=['GET'])
+def api_get_contact():
+    """Return contact.md body (markdown after front matter)."""
+    post = frontmatter.load(CONTACT_TAB)
+    return jsonify({'body': post.content, 'title': post.metadata.get('title', 'Contact')})
+
+
+@app.route('/api/pages/contact', methods=['PUT'])
+def api_save_contact():
+    """Save contact.md body."""
+    data = request.get_json(force=True)
+    post = frontmatter.load(CONTACT_TAB)
+    post.content = data.get('body', '')
+    with open(CONTACT_TAB, 'w', encoding='utf-8') as f:
+        f.write(frontmatter.dumps(post) + '\n')
+    _trigger_jekyll_rebuild()
+    return jsonify({'status': 'saved'})
+
+
+# ---------------------------------------------------------------------------
+# API — sidebar (_config.yml + _data/contact.yml)
+# ---------------------------------------------------------------------------
+
+CONFIG_YML = os.path.join(BLOG_ROOT, '_config.yml')
+CONTACT_YML = os.path.join(BLOG_ROOT, '_data', 'contact.yml')
+
+
+@app.route('/api/pages/sidebar', methods=['GET'])
+def api_get_sidebar():
+    """Read sidebar-related fields from _config.yml and _data/contact.yml."""
+    with open(CONFIG_YML, 'r', encoding='utf-8') as f:
+        cfg = yaml.safe_load(f)
+
+    contact_raw = ''
+    if os.path.isfile(CONTACT_YML):
+        with open(CONTACT_YML, 'r', encoding='utf-8') as f:
+            contact_raw = f.read()
+
+    return jsonify({
+        'title': cfg.get('title', ''),
+        'tagline': cfg.get('tagline', ''),
+        'avatar': cfg.get('avatar', ''),
+        'social_name': (cfg.get('social') or {}).get('name', ''),
+        'social_email': (cfg.get('social') or {}).get('email', ''),
+        'github_username': (cfg.get('github') or {}).get('username', ''),
+        'twitter_username': (cfg.get('twitter') or {}).get('username', ''),
+        'contact_yml': contact_raw,
+    })
+
+
+@app.route('/api/pages/sidebar', methods=['PUT'])
+def api_save_sidebar():
+    """Update sidebar fields in _config.yml and overwrite _data/contact.yml."""
+    data = request.get_json(force=True)
+
+    # ── Update _config.yml via line-level replacements ──
+    with open(CONFIG_YML, 'r', encoding='utf-8') as f:
+        lines = f.read()
+
+    replacements = [
+        (r'^(title:\s*).*$', r'\g<1>' + data.get('title', '')),
+        (r'^(tagline:\s*).*$', r'\g<1>' + data.get('tagline', '')),
+        (r'^(avatar:\s*).*$', r'\g<1>' + data.get('avatar', '')),
+    ]
+    for pat, repl in replacements:
+        lines = re.sub(pat, repl, lines, count=1, flags=re.MULTILINE)
+
+    # github.username
+    lines = re.sub(
+        r'^(\s*username:\s*).*?(#.*change to your github.*)$',
+        r'\g<1>' + data.get('github_username', '') + r' \2',
+        lines, count=1, flags=re.MULTILINE,
+    )
+    # twitter.username
+    lines = re.sub(
+        r'^(\s*username:\s*).*?(#.*change to your twitter.*)$',
+        r'\g<1>' + data.get('twitter_username', '') + r' \2',
+        lines, count=1, flags=re.MULTILINE,
+    )
+    # social.name
+    lines = re.sub(
+        r'^(\s*name:\s*).*?(#.*|$)',
+        r'\g<1>' + data.get('social_name', '') + r' \2',
+        lines, count=1, flags=re.MULTILINE,
+    )
+    # social.email
+    lines = re.sub(
+        r'^(\s*email:\s*).*?(#.*change to your email.*)$',
+        r'\g<1>' + data.get('social_email', '') + r' \2',
+        lines, count=1, flags=re.MULTILINE,
+    )
+
+    with open(CONFIG_YML, 'w', encoding='utf-8') as f:
+        f.write(lines)
+
+    # ── Overwrite _data/contact.yml ──
+    contact_yml = data.get('contact_yml', '')
+    if contact_yml is not None:
+        os.makedirs(os.path.dirname(CONTACT_YML), exist_ok=True)
+        with open(CONTACT_YML, 'w', encoding='utf-8') as f:
+            f.write(contact_yml)
+
+    _restart_jekyll()
+    return jsonify({'status': 'saved'})
+
 
 # ---------------------------------------------------------------------------
 # API — posts

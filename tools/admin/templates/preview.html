@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Preview{% endblock %}
+
+{% block head %}
+<style>
+    .preview-wrapper {
+        position: relative;
+        background: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .preview-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .preview-url {
+        flex-grow: 1;
+        font-family: 'SF Mono', 'Menlo', monospace;
+        font-size: 0.85rem;
+        color: #6c757d;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .preview-frame {
+        width: 100%;
+        height: calc(100vh - 140px);
+        border: none;
+    }
+    .preview-offline {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: calc(100vh - 140px);
+        color: #adb5bd;
+    }
+    .preview-offline i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="preview-wrapper">
+    <div class="preview-toolbar">
+        <button class="btn btn-sm btn-outline-secondary" onclick="navigateTo('/')" title="Home">
+            <i class="bi bi-house"></i>
+        </button>
+        <input type="text" class="preview-url" id="preview-url" value="/"
+               onkeydown="if(event.key==='Enter') navigateTo(this.value)">
+        <button class="btn btn-sm btn-outline-secondary" onclick="reloadPreview()" title="Reload">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary" onclick="setWidth('100%')" title="Desktop">
+                <i class="bi bi-display"></i>
+            </button>
+            <button class="btn btn-outline-secondary" onclick="setWidth('768px')" title="Tablet">
+                <i class="bi bi-tablet"></i>
+            </button>
+            <button class="btn btn-outline-secondary" onclick="setWidth('375px')" title="Mobile">
+                <i class="bi bi-phone"></i>
+            </button>
+        </div>
+        <a class="btn btn-sm btn-outline-primary" href="http://localhost:4000" target="_blank" title="Open in new tab">
+            <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+    </div>
+    <div class="text-center">
+        <iframe id="preview-frame" class="preview-frame" src="http://localhost:4000"></iframe>
+    </div>
+    <div id="preview-offline" class="preview-offline" style="display:none">
+        <i class="bi bi-wifi-off"></i>
+        <p>Jekyll server is not running</p>
+        <p class="small">Start it with: <code>bundle exec jekyll serve</code></p>
+        <button class="btn btn-sm btn-outline-primary mt-2" onclick="checkJekyll()">Retry</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const frame = document.getElementById('preview-frame');
+const offlineMsg = document.getElementById('preview-offline');
+const urlInput = document.getElementById('preview-url');
+
+function navigateTo(path) {
+    const url = 'http://localhost:4000' + (path.startsWith('/') ? path : '/' + path);
+    frame.src = url;
+    urlInput.value = path;
+}
+
+function reloadPreview() {
+    frame.src = frame.src;
+}
+
+function setWidth(w) {
+    frame.style.maxWidth = w;
+    frame.style.margin = w === '100%' ? '0' : '0 auto';
+    frame.style.display = 'block';
+}
+
+async function checkJekyll() {
+    try {
+        const res = await fetch('http://localhost:4000', { mode: 'no-cors' });
+        frame.style.display = 'block';
+        offlineMsg.style.display = 'none';
+    } catch (e) {
+        frame.style.display = 'none';
+        offlineMsg.style.display = 'flex';
+    }
+}
+
+// Check on load
+frame.addEventListener('load', () => {
+    // If frame loaded, Jekyll is running
+    offlineMsg.style.display = 'none';
+});
+
+// Initial check after short delay
+setTimeout(checkJekyll, 1000);
+</script>
+{% endblock %}

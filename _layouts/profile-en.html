@@ -1,0 +1,66 @@
+---
+layout: default
+---
+
+{% include lang.html %}
+
+<article class="px-1">
+  <!-- Language switch -->
+  <div class="text-end mb-2">
+    <span class="btn btn-sm btn-dark disabled">EN</span>
+    <a href="/ko/" class="btn btn-sm btn-outline-secondary">KR</a>
+  </div>
+
+  <!-- Header -->
+  <div class="profile-header mb-4">
+    <h1 class="mt-0 mb-1">Suhyeon Shin <span class="profile-name-en">/ 신수현</span></h1>
+    <p class="profile-affiliation mb-2">PhD Candidate, Department of Geography and Environment, LSE</p>
+    <p class="profile-bio text-muted">
+      Suhyeon investigates the relationship between asset inequality and political cleavages shaped by state-led developmentalism in South Korea. His research examines how authoritarian developmental legacies have shaped property-based political divisions following democratization, with focus on spatial dimensions and democratic stability. Previously a data analyst across private sector (mobility and media startups) and public sector (Seoul Metropolitan Government), and an award-winning data journalist.<br>
+      <br>
+      s.shin4@lse.ac.uk / beingsince.official@gmail.com
+    </p>
+  </div>
+
+  <!-- Research Interests -->
+  <div class="profile-section">
+    <h2 class="profile-section-title">Research Interests</h2>
+    <p class="profile-keywords">
+      Asset-based political cleavages and electoral geographies · Urban political economy and spatial inequality · State-led urbanization, housing regimes, and democratic stability · Gendered internal migration and social mobility
+    </p>
+  </div>
+
+  <!-- Thesis -->
+  <div class="profile-section">
+    <h2 class="profile-section-title">Thesis</h2>
+    <p class="text-muted fst-italic">
+      "Aftermath of State-Led Gentrification: asset-based political cleavage in South Korea"
+    </p>
+  </div>
+
+  <!-- Recent Publications -->
+  <div class="profile-section">
+    <h2 class="profile-section-title">Recent Publications</h2>
+    <ul class="profile-list">
+      <li><a href="https://www.sisain.co.kr/news/articleView.html?idxno=52805">야권 지지층의 연합전선은 계속될까?</a> <span class="text-muted">시사IN, 2024.04</span></li>
+      <li><a href="https://www.sisain.co.kr/news/articleView.html?idxno=52683">부동산 가격이 선거에 미치는 영향</a> <span class="text-muted">시사IN, 2024.04</span></li>
+      <li><a href="https://www.sisain.co.kr/news/articleView.html?idxno=52688">데이터로 본 총선 1~9</a> <span class="text-muted">시사IN, 2024.03</span></li>
+    </ul>
+    <a href="/publications/" class="profile-see-all">See all &rarr;</a>
+  </div>
+
+  <!-- Latest Posts -->
+  <div class="profile-section">
+    <h2 class="profile-section-title">Latest Posts</h2>
+    <ul class="profile-list">
+      {% assign recent_posts = site.posts | where_exp: 'item', 'item.hidden != true' %}
+      {% for post in recent_posts limit: 3 %}
+        <li>
+          <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+          <span class="text-muted">{{ post.date | date: "%Y.%m" }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+    <a href="/blog/" class="profile-see-all">See all &rarr;</a>
+  </div>
+</article>

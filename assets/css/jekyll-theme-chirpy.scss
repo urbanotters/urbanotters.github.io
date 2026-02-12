@@ -8,3 +8,111 @@
 ';
 
 /* append your custom style below */
+
+/* --- Academic Profile Landing --- */
+
+.profile-header {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--main-border-color);
+}
+
+.profile-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.profile-name-en {
+  font-weight: 400;
+  font-size: 1.2rem;
+  color: var(--text-muted-color);
+}
+
+.profile-affiliation {
+  font-size: 1.05rem;
+  color: var(--text-muted-color);
+}
+
+.profile-bio {
+  font-size: 0.95rem;
+  max-width: 560px;
+}
+
+.profile-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.profile-links a {
+  font-size: 1.3rem;
+  color: var(--text-muted-color);
+  transition: color 0.15s;
+}
+
+.profile-links a:hover {
+  color: var(--link-color);
+}
+
+.profile-section {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--main-border-color);
+}
+
+.profile-section:last-child {
+  border-bottom: none;
+}
+
+.profile-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted-color);
+  margin-bottom: 0.75rem;
+}
+
+.profile-keywords {
+  font-size: 0.95rem;
+  color: var(--text-color);
+}
+
+.profile-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.profile-list li {
+  padding: 0.35rem 0;
+  font-size: 0.95rem;
+}
+
+.profile-list li .text-muted {
+  font-size: 0.85rem;
+}
+
+.profile-see-all {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* --- CV PDF Embed --- */
+
+.cv-embed {
+  width: 100%;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.cv-embed iframe {
+  width: 100%;
+  height: 80vh;
+  border: 1px solid var(--main-border-color);
+  border-radius: 0.375rem;
+}
+
+/* --- Blog Browse Links --- */
+
+.blog-browse a {
+  font-size: 0.9rem;
+}
