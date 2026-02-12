@@ -48,16 +48,21 @@
 /* --- Mobile Topbar Touch Fix --- */
 
 @media all and (max-width: 849px) {
-  #sidebar-trigger {
-    padding: 0.5rem 0.75rem !important;
-    min-width: 44px;
-    min-height: 44px;
+  #topbar-wrapper {
+    position: relative;
+    z-index: 10;
   }
 
+  #sidebar-trigger,
   #search-trigger {
     padding: 0.5rem 0.75rem !important;
     min-width: 44px;
     min-height: 44px;
+    position: relative;
+    z-index: 11;
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
   }
 }
 
