@@ -486,17 +486,17 @@ def _save_profile(data: dict, lang: str = 'ko') -> None:
 
     if lang == 'ko':
         lang_switch = ('  <!-- Language switch -->\n'
-                       '  <div class="text-end mb-2">\n'
-                       '    <a href="/" class="btn btn-sm btn-outline-secondary">EN</a>\n'
-                       '    <span class="btn btn-sm btn-dark disabled">KR</span>\n'
+                       '  <div class="lang-switch">\n'
+                       '    <a href="/" class="lang-inactive">EN</a>\n'
+                       '    <span class="lang-active">KR</span>\n'
                        '  </div>\n\n')
         heading = '{name_primary} <span class="profile-name-en">/ {name_secondary}</span>'
         filepath = PROFILE_LAYOUT
     else:
         lang_switch = ('  <!-- Language switch -->\n'
-                       '  <div class="text-end mb-2">\n'
-                       '    <span class="btn btn-sm btn-dark disabled">EN</span>\n'
-                       '    <a href="/ko/" class="btn btn-sm btn-outline-secondary">KR</a>\n'
+                       '  <div class="lang-switch">\n'
+                       '    <span class="lang-active">EN</span>\n'
+                       '    <a href="/ko/" class="lang-inactive">KR</a>\n'
                        '  </div>\n\n')
         heading = '{name_primary} <span class="profile-name-en">/ {name_secondary}</span>'
         filepath = PROFILE_EN_LAYOUT
@@ -511,7 +511,7 @@ layout: default
 {lang_switch}  <!-- Header -->
   <div class="profile-header mb-4">
     <h1 class="mt-0 mb-1">{heading}</h1>
-    <p class="profile-affiliation mb-2">{affiliation}</p>
+    <p class="profile-affiliation mb-1">{affiliation}</p>
     <p class="profile-bio text-muted">
       {bio}
     </p>

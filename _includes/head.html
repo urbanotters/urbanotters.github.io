@@ -51,7 +51,7 @@
   {{ seo_tags }}
 
   <title>
-    {%- unless page.layout == 'home' -%}
+    {%- unless page.layout == 'home' or page.layout == 'profile-en' or page.layout == 'profile' -%}
       {{ page.title | append: ' | ' }}
     {%- endunless -%}
     {{ site.title }}
