@@ -70,6 +70,25 @@ layout: compress
 
     <div id="mask"></div>
 
+    <!-- Mobile bottom navigation -->
+    <nav id="mobile-nav" aria-label="Mobile Navigation">
+      <a href="/" class="mobile-nav-item{% if page.layout == 'home' or page.layout == 'profile-en' or page.layout == 'profile' %} active{% endif %}">
+        <i class="fas fa-home"></i><span>Home</span>
+      </a>
+      <a href="/cv/" class="mobile-nav-item{% if page.url == '/cv/' %} active{% endif %}">
+        <i class="fas fa-file-alt"></i><span>CV</span>
+      </a>
+      <a href="/publications/" class="mobile-nav-item{% if page.url == '/publications/' %} active{% endif %}">
+        <i class="fas fa-pen-nib"></i><span>Pubs</span>
+      </a>
+      <a href="/blog/" class="mobile-nav-item{% if page.url == '/blog/' %} active{% endif %}">
+        <i class="fas fa-blog"></i><span>Blog</span>
+      </a>
+      <a href="/contact/" class="mobile-nav-item{% if page.url == '/contact/' %} active{% endif %}">
+        <i class="fas fa-envelope"></i><span>Contact</span>
+      </a>
+    </nav>
+
     {% if site.pwa.enabled %}
       {% include_cached notification.html lang=lang %}
     {% endif %}
