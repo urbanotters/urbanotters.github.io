@@ -207,7 +207,8 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Tagline</label>
-                            <input type="text" class="form-control" id="sb-tagline">
+                            <textarea class="form-control" id="sb-tagline" rows="2"
+                                      placeholder="줄바꿈 가능"></textarea>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Author Name</label>
@@ -363,6 +364,7 @@ async function saveCurrentProfile(e) {
 
 // ── CV ──
 let currentCvLang = 'en';
+let cvData = {};  // cached {en: {...}, kr: {...}}
 
 function switchCvLang(lang) {
     currentCvLang = lang;
@@ -372,20 +374,26 @@ function switchCvLang(lang) {
     const label = lang === 'en' ? 'English' : 'Korean';
     document.getElementById('cv-card-title').textContent = `Current CV (${label})`;
     document.getElementById('cv-upload-status').innerHTML = '';
-    loadCV(lang);
+    renderCV(lang);
 }
 
-async function loadCV(lang) {
-    lang = lang || currentCvLang;
-    const endpoint = lang === 'en' ? '/api/pages/cv-en' : '/api/pages/cv';
-    const res = await fetch(endpoint);
-    const data = await res.json();
+async function loadCV() {
+    const res = await fetch('/api/pages/cv');
+    cvData = await res.json();
+    renderCV(currentCvLang);
+}
+
+function renderCV(lang) {
+    const data = cvData[lang] || {};
     const el = document.getElementById('cv-current');
     if (data.exists) {
         const sizeKB = (data.size / 1024).toFixed(0);
         el.innerHTML = `<i class="bi bi-file-earmark-pdf text-danger me-1"></i>
             <code>${data.pdf_path}</code> <span class="text-muted">(${sizeKB} KB)</span>`;
         document.getElementById('cv-preview-frame').src = data.pdf_path;
+    } else if (data.pdf_path) {
+        el.innerHTML = `<span class="text-warning">File not found: ${data.pdf_path}</span>`;
+        document.getElementById('cv-preview-frame').src = '';
     } else {
         el.innerHTML = '<span class="text-warning">No CV uploaded yet</span>';
         document.getElementById('cv-preview-frame').src = '';
@@ -402,12 +410,11 @@ async function uploadCV(file) {
 
     const form = new FormData();
     form.append('file', file);
-    const endpoint = currentCvLang === 'en' ? '/api/pages/cv-en/upload' : '/api/pages/cv/upload';
-    const res = await fetch(endpoint, { method: 'POST', body: form });
+    const res = await fetch(`/api/pages/cv/upload?lang=${currentCvLang}`, { method: 'POST', body: form });
     const data = await res.json();
     if (res.ok) {
         status.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Uploaded: ${data.filename}</span>`;
-        loadCV(currentCvLang);
+        loadCV();
         const label = currentCvLang === 'en' ? 'English' : 'Korean';
         showToast(`${label} CV uploaded`, 'success');
     } else {
@@ -514,7 +521,7 @@ async function saveSidebar(e) {
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
     loadProfile('en');
-    loadCV('en');
+    loadCV();
     loadPublications();
     loadContact();
     loadSidebar();

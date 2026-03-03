@@ -16,9 +16,9 @@ timezone:
 
 title: Suhyeon Shin
 
-tagline: 도시-데이터-정책 관련 종사자 / mapmaker / 서늘하고 건조한 곳에 보관하세요
- # it will display as the sub-title
-
+tagline: |-
+  A mapmaker.
+  Urban data/policy professional who recommends being stored in a cool, dry place.
 description: >- # used by seo meta and the atom feed
   도시데이터연구소. 주로 도시와 관련된 공공, 민간영역의 다양한 데이터분석과 컨설팅을 수행합니다.
 

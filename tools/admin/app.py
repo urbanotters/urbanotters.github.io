@@ -106,6 +106,60 @@ def _trigger_jekyll_rebuild() -> None:
         os.utime(index_file, None)
 
 
+def _is_jekyll_running() -> bool:
+    """Check if Jekyll is already serving on port 4000."""
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        sock.settimeout(1)
+        sock.connect(('127.0.0.1', 4000))
+        sock.close()
+        return True
+    except (socket.error, OSError):
+        return False
+
+
+JEKYLL_LOG = os.path.join(SCRIPT_DIR, 'jekyll.log')
+_jekyll_proc = None  # type: Optional[subprocess.Popen]
+
+
+def _ruby_env() -> Dict[str, str]:
+    """Build env dict with rbenv/user Ruby on PATH (subprocess inherits
+    system PATH which may lack rbenv shims)."""
+    env = os.environ.copy()
+    home = os.path.expanduser('~')
+    rbenv_shims = os.path.join(home, '.rbenv', 'shims')
+    if os.path.isdir(rbenv_shims):
+        env['PATH'] = rbenv_shims + ':' + env.get('PATH', '')
+    return env
+
+
+def _start_jekyll() -> bool:
+    """Start Jekyll serve in background if not already running.
+    Returns True if started, False if already running."""
+    global _jekyll_proc
+    if _is_jekyll_running():
+        return False
+    log_fh = open(JEKYLL_LOG, 'w', encoding='utf-8')
+    _jekyll_proc = subprocess.Popen(
+        ['bundle', 'exec', 'jekyll', 'serve', '--port', '4000', '--livereload'],
+        cwd=BLOG_ROOT,
+        stdout=log_fh,
+        stderr=subprocess.STDOUT,
+        env=_ruby_env(),
+    )
+    return True
+
+
+def _jekyll_log_tail(lines: int = 30) -> str:
+    """Return last N lines of Jekyll log."""
+    if not os.path.isfile(JEKYLL_LOG):
+        return ''
+    with open(JEKYLL_LOG, 'r', encoding='utf-8', errors='replace') as f:
+        all_lines = f.readlines()
+    return ''.join(all_lines[-lines:])
+
+
 def _restart_jekyll() -> None:
     """Kill and restart Jekyll serve (needed after _config.yml changes)."""
     import signal
@@ -125,13 +179,8 @@ def _restart_jekyll() -> None:
     import time
     time.sleep(2)
 
-    # Restart Jekyll in background
-    subprocess.Popen(
-        ['bundle', 'exec', 'jekyll', 'serve', '--port', '4000', '--livereload'],
-        cwd=BLOG_ROOT,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    # Start fresh
+    _start_jekyll()
 
 # ---------------------------------------------------------------------------
 # Helpers — posts
@@ -421,7 +470,7 @@ def pages():
 PROFILE_LAYOUT = os.path.join(BLOG_ROOT, '_layouts', 'profile.html')
 PROFILE_EN_LAYOUT = os.path.join(BLOG_ROOT, '_layouts', 'profile-en.html')
 CV_TAB = os.path.join(BLOG_ROOT, '_tabs', 'cv.md')
-CV_EN_TAB = os.path.join(BLOG_ROOT, '_tabs', 'cv-en.md')
+# CV_EN_TAB removed — merged into CV_TAB with EN/KR tabs
 PUBLICATIONS_TAB = os.path.join(BLOG_ROOT, '_tabs', 'publications.md')
 CONTACT_TAB = os.path.join(BLOG_ROOT, '_tabs', 'contact.md')
 
@@ -599,88 +648,95 @@ def api_save_profile_en():
     return jsonify({'status': 'saved'})
 
 
-@app.route('/api/pages/cv', methods=['GET'])
-def api_get_cv():
-    """Return current CV PDF path."""
+def _parse_cv_tab() -> dict:
+    """Parse cv.md and return both EN and KR PDF paths."""
     content = open(CV_TAB, 'r', encoding='utf-8').read()
-    m = re.search(r'src="([^"]+)"', content)
-    pdf_path = m.group(1) if m else ''
-    # Check file exists
-    abs_pdf = os.path.join(BLOG_ROOT, pdf_path.lstrip('/')) if pdf_path else ''
-    exists = os.path.isfile(abs_pdf) if abs_pdf else False
-    size = os.path.getsize(abs_pdf) if exists else 0
-    return jsonify({'pdf_path': pdf_path, 'exists': exists, 'size': size})
+    # EN PDF is in div#cv-en, KR is in div#cv-kr
+    en_m = re.search(r'id="cv-en".*?src="([^"]+)"', content, re.DOTALL)
+    kr_m = re.search(r'id="cv-kr".*?src="([^"]+)"', content, re.DOTALL)
+    result = {}
+    for key, m in [('en', en_m), ('kr', kr_m)]:
+        pdf_path = m.group(1) if m else ''
+        abs_pdf = os.path.join(BLOG_ROOT, pdf_path.lstrip('/')) if pdf_path else ''
+        exists = os.path.isfile(abs_pdf) if abs_pdf else False
+        size = os.path.getsize(abs_pdf) if exists else 0
+        result[key] = {'pdf_path': pdf_path, 'exists': exists, 'size': size}
+    return result
 
 
-@app.route('/api/pages/cv/upload', methods=['POST'])
-def api_upload_cv():
-    """Upload a new CV PDF and update cv.md + profile.html references."""
-    if 'file' not in request.files:
-        abort(400, 'No file provided')
-    file = request.files['file']
-    if not file.filename or _ext(file.filename) != 'pdf':
-        abort(400, 'Only PDF files allowed')
-
-    safe_name = secure_filename(file.filename)
-    if not safe_name:
-        safe_name = 'resume.pdf'
-
-    dest_dir = os.path.join(ASSETS_DIR, 'docs')
-    os.makedirs(dest_dir, exist_ok=True)
-    dest = os.path.join(dest_dir, safe_name)
-    file.save(dest)
-
-    rel_path = '/' + os.path.relpath(dest, BLOG_ROOT)
-
-    # Update cv.md
+def _save_cv_tab(en_path: str, kr_path: str) -> None:
+    """Rewrite cv.md with EN/KR lang-switch tab layout."""
     cv_content = '''---
 title: CV
 icon: fas fa-file-alt
 order: 1
 ---
 
-<div class="cv-embed">
-  <iframe src="{path}" title="CV / Resume"></iframe>
+<div class="lang-switch">
+  <span class="lang-active" id="lang-en" onclick="switchCV('en')">EN</span>
+  <span class="lang-inactive" id="lang-kr" onclick="switchCV('kr')">KR</span>
 </div>
 
-<p class="text-center mt-3">
-  <a href="{path}" class="btn btn-outline-primary btn-sm" download>
-    <i class="fas fa-download me-1"></i>Download PDF
-  </a>
-</p>
-'''.format(path=rel_path)
+<div id="cv-en">
+  <div class="cv-embed">
+    <iframe src="{en_path}" title="CV (EN)"></iframe>
+  </div>
+  <p class="text-center mt-3">
+    <a href="{en_path}" class="btn btn-outline-primary btn-sm" download>
+      <i class="fas fa-download me-1"></i>Download PDF
+    </a>
+  </p>
+</div>
+
+<div id="cv-kr" style="display:none">
+  <div class="cv-embed">
+    <iframe src="{kr_path}" title="CV (KR)"></iframe>
+  </div>
+  <p class="text-center mt-3">
+    <a href="{kr_path}" class="btn btn-outline-primary btn-sm" download>
+      <i class="fas fa-download me-1"></i>Download PDF
+    </a>
+  </p>
+</div>
+
+<script>
+function switchCV(lang) {{
+  var enDiv = document.getElementById('cv-en');
+  var krDiv = document.getElementById('cv-kr');
+  var enBtn = document.getElementById('lang-en');
+  var krBtn = document.getElementById('lang-kr');
+  if (lang === 'kr') {{
+    enDiv.style.display = 'none';
+    krDiv.style.display = 'block';
+    enBtn.className = 'lang-inactive';
+    krBtn.className = 'lang-active';
+  }} else {{
+    enDiv.style.display = 'block';
+    krDiv.style.display = 'none';
+    enBtn.className = 'lang-active';
+    krBtn.className = 'lang-inactive';
+  }}
+}}
+</script>
+'''.format(en_path=en_path, kr_path=kr_path)
 
     with open(CV_TAB, 'w', encoding='utf-8') as f:
         f.write(cv_content)
 
-    # Update both profile layouts' CV link
-    for layout_path, lang in [(PROFILE_LAYOUT, 'ko'), (PROFILE_EN_LAYOUT, 'en')]:
-        try:
-            profile = _parse_profile(layout_path)
-            profile['cv_pdf'] = rel_path
-            _save_profile(profile, lang=lang)
-        except Exception:
-            pass  # profile update is best-effort
 
-    _trigger_jekyll_rebuild()
-    return jsonify({'status': 'uploaded', 'path': rel_path, 'filename': safe_name})
+@app.route('/api/pages/cv', methods=['GET'])
+def api_get_cv():
+    """Return both EN and KR CV PDF info."""
+    return jsonify(_parse_cv_tab())
 
 
-def _get_cv_pdf(tab_path: str) -> dict:
-    """Read a CV tab file and return PDF info."""
-    if not os.path.isfile(tab_path):
-        return {'pdf_path': '', 'exists': False, 'size': 0}
-    content = open(tab_path, 'r', encoding='utf-8').read()
-    m = re.search(r'src="([^"]+)"', content)
-    pdf_path = m.group(1) if m else ''
-    abs_pdf = os.path.join(BLOG_ROOT, pdf_path.lstrip('/')) if pdf_path else ''
-    exists = os.path.isfile(abs_pdf) if abs_pdf else False
-    size = os.path.getsize(abs_pdf) if exists else 0
-    return {'pdf_path': pdf_path, 'exists': exists, 'size': size}
+@app.route('/api/pages/cv/upload', methods=['POST'])
+def api_upload_cv():
+    """Upload a CV PDF for a specific lang (en or kr)."""
+    lang = request.args.get('lang', 'en')
+    if lang not in ('en', 'kr'):
+        abort(400, 'lang must be en or kr')
 
-
-def _upload_cv(tab_path: str, title: str) -> dict:
-    """Handle CV PDF upload for a given tab file."""
     if 'file' not in request.files:
         abort(400, 'No file provided')
     file = request.files['file']
@@ -698,39 +754,14 @@ def _upload_cv(tab_path: str, title: str) -> dict:
 
     rel_path = '/' + os.path.relpath(dest, BLOG_ROOT)
 
-    cv_content = '''---
-title: {title}
-icon: fas fa-file-alt
-order: 1
----
-
-<div class="cv-embed">
-  <iframe src="{path}" title="CV / Resume"></iframe>
-</div>
-
-<p class="text-center mt-3">
-  <a href="{path}" class="btn btn-outline-primary btn-sm" download>
-    <i class="fas fa-download me-1"></i>Download PDF
-  </a>
-</p>
-'''.format(title=title, path=rel_path)
-
-    with open(tab_path, 'w', encoding='utf-8') as f:
-        f.write(cv_content)
+    # Read current paths, update the changed lang
+    current = _parse_cv_tab()
+    en_path = rel_path if lang == 'en' else current['en']['pdf_path']
+    kr_path = rel_path if lang == 'kr' else current['kr']['pdf_path']
+    _save_cv_tab(en_path, kr_path)
 
     _trigger_jekyll_rebuild()
-    return {'status': 'uploaded', 'path': rel_path, 'filename': safe_name}
-
-
-@app.route('/api/pages/cv-en', methods=['GET'])
-def api_get_cv_en():
-    return jsonify(_get_cv_pdf(CV_EN_TAB))
-
-
-@app.route('/api/pages/cv-en/upload', methods=['POST'])
-def api_upload_cv_en():
-    result = _upload_cv(CV_EN_TAB, 'CV (EN)')
-    return jsonify(result)
+    return jsonify({'status': 'uploaded', 'path': rel_path, 'filename': safe_name})
 
 
 @app.route('/api/pages/publications', methods=['GET'])
@@ -817,11 +848,24 @@ def api_save_sidebar():
 
     replacements = [
         (r'^(title:\s*).*$', r'\g<1>' + data.get('title', '')),
-        (r'^(tagline:\s*).*$', r'\g<1>' + data.get('tagline', '')),
         (r'^(avatar:\s*).*$', r'\g<1>' + data.get('avatar', '')),
     ]
     for pat, repl in replacements:
         lines = re.sub(pat, repl, lines, count=1, flags=re.MULTILINE)
+
+    # Tagline: replace as YAML |- block to support newlines
+    tagline = data.get('tagline', '')
+    tagline_lines = tagline.strip().split('\n')
+    if len(tagline_lines) > 1:
+        tagline_yaml = 'tagline: |-\n' + '\n'.join('  ' + l for l in tagline_lines)
+    else:
+        tagline_yaml = 'tagline: ' + tagline_lines[0]
+    # Remove existing tagline (may be multi-line |- block)
+    lines = re.sub(
+        r'^tagline:.*?(?=\n\S|\Z)',
+        tagline_yaml,
+        lines, count=1, flags=re.MULTILINE | re.DOTALL,
+    )
 
     # github.username
     lines = re.sub(
@@ -1039,6 +1083,38 @@ def api_git_commit_push():
     return jsonify(result), status_code
 
 # ---------------------------------------------------------------------------
+# API — Jekyll server
+# ---------------------------------------------------------------------------
+
+@app.route('/api/jekyll/status', methods=['GET'])
+def api_jekyll_status():
+    global _jekyll_proc
+    running = _is_jekyll_running()
+    crashed = False
+    if _jekyll_proc is not None and _jekyll_proc.poll() is not None and not running:
+        crashed = True
+    return jsonify({
+        'running': running,
+        'crashed': crashed,
+        'log': _jekyll_log_tail(20),
+    })
+
+
+@app.route('/api/jekyll/start', methods=['POST'])
+def api_jekyll_start():
+    if _is_jekyll_running():
+        return jsonify({'status': 'already_running'})
+    _start_jekyll()
+    return jsonify({'status': 'starting'})
+
+
+@app.route('/api/jekyll/restart', methods=['POST'])
+def api_jekyll_restart():
+    _restart_jekyll()
+    return jsonify({'status': 'restarting'})
+
+
+# ---------------------------------------------------------------------------
 # Serve uploaded assets for preview
 # ---------------------------------------------------------------------------
 
@@ -1053,6 +1129,16 @@ def serve_asset(filepath):
 if __name__ == '__main__':
     # Ensure _drafts exists
     os.makedirs(DRAFTS_DIR, exist_ok=True)
+
+    # Auto-start Jekyll (only in reloader child to avoid double-start)
+    is_reloader = os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
+    if is_reloader or not app.debug:
+        if _is_jekyll_running():
+            print('Jekyll: already running on http://localhost:4000')
+        else:
+            print('Jekyll: starting on http://localhost:4000 ...')
+            _start_jekyll()
+
     print(f'Blog root: {BLOG_ROOT}')
     print(f'Admin: http://127.0.0.1:5001')
     app.run(host='127.0.0.1', port=5001, debug=True)

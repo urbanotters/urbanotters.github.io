@@ -45,6 +45,22 @@
         font-size: 3rem;
         margin-bottom: 1rem;
     }
+    .jekyll-log {
+        max-width: 700px;
+        width: 100%;
+        margin-top: 1rem;
+        text-align: left;
+        font-family: 'SF Mono', 'Menlo', monospace;
+        font-size: 0.75rem;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        max-height: 200px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
 </style>
 {% endblock %}
 
@@ -75,13 +91,18 @@
         </a>
     </div>
     <div class="text-center">
-        <iframe id="preview-frame" class="preview-frame" src="http://localhost:4000"></iframe>
+        <iframe id="preview-frame" class="preview-frame" style="display:none"></iframe>
     </div>
-    <div id="preview-offline" class="preview-offline" style="display:none">
+    <div id="preview-offline" class="preview-offline">
         <i class="bi bi-wifi-off"></i>
-        <p>Jekyll server is not running</p>
-        <p class="small">Start it with: <code>bundle exec jekyll serve</code></p>
-        <button class="btn btn-sm btn-outline-primary mt-2" onclick="checkJekyll()">Retry</button>
+        <p id="jekyll-status-msg">Jekyll server is not running</p>
+        <button class="btn btn-primary mt-2" id="btn-start-jekyll" onclick="startJekyll()">
+            <i class="bi bi-play-fill me-1"></i>Start Jekyll
+        </button>
+        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="checkJekyll()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Retry
+        </button>
+        <div id="jekyll-log" class="jekyll-log" style="display:none"></div>
     </div>
 </div>
 {% endblock %}
@@ -91,6 +112,8 @@
 const frame = document.getElementById('preview-frame');
 const offlineMsg = document.getElementById('preview-offline');
 const urlInput = document.getElementById('preview-url');
+const statusMsg = document.getElementById('jekyll-status-msg');
+const logBox = document.getElementById('jekyll-log');
 
 function navigateTo(path) {
     const url = 'http://localhost:4000' + (path.startsWith('/') ? path : '/' + path);
@@ -105,27 +128,62 @@ function reloadPreview() {
 function setWidth(w) {
     frame.style.maxWidth = w;
     frame.style.margin = w === '100%' ? '0' : '0 auto';
-    frame.style.display = 'block';
 }
 
 async function checkJekyll() {
     try {
-        const res = await fetch('http://localhost:4000', { mode: 'no-cors' });
-        frame.style.display = 'block';
-        offlineMsg.style.display = 'none';
-    } catch (e) {
-        frame.style.display = 'none';
-        offlineMsg.style.display = 'flex';
-    }
+        const res = await fetch('/api/jekyll/status');
+        const data = await res.json();
+        if (data.running) {
+            frame.src = 'http://localhost:4000' + urlInput.value;
+            frame.style.display = 'block';
+            offlineMsg.style.display = 'none';
+            logBox.style.display = 'none';
+            return 'running';
+        }
+        // Show log if available
+        if (data.log) {
+            logBox.textContent = data.log;
+            logBox.style.display = 'block';
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+        if (data.crashed) {
+            statusMsg.textContent = 'Jekyll crashed — check log below';
+            return 'crashed';
+        }
+    } catch (e) {}
+    frame.style.display = 'none';
+    offlineMsg.style.display = 'flex';
+    return 'stopped';
 }
 
-// Check on load
-frame.addEventListener('load', () => {
-    // If frame loaded, Jekyll is running
-    offlineMsg.style.display = 'none';
-});
+async function startJekyll() {
+    const btn = document.getElementById('btn-start-jekyll');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Starting...';
+    statusMsg.textContent = 'Starting Jekyll...';
+    logBox.textContent = '';
+    logBox.style.display = 'block';
+    try {
+        await fetch('/api/jekyll/start', { method: 'POST' });
+    } catch (e) {}
+    // Poll until Jekyll is ready (up to 60s)
+    let attempts = 0;
+    const poll = setInterval(async () => {
+        attempts++;
+        const status = await checkJekyll();
+        if (status === 'running' || status === 'crashed' || attempts > 60) {
+            clearInterval(poll);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>Start Jekyll';
+            if (status === 'stopped') {
+                statusMsg.textContent = 'Jekyll failed to start — check log';
+            }
+        }
+    }, 1000);
+}
 
-// Initial check after short delay
-setTimeout(checkJekyll, 1000);
+// Initial check
+checkJekyll();
 </script>
 {% endblock %}

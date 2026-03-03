@@ -1,0 +1,128 @@
+/Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll.rb:28: warning: csv was loaded from the standard library, but will no longer be part of the default gems since Ruby 3.4.0. Add csv to your Gemfile or gemspec. Also contact author of jekyll-4.3.4 to add csv into its gemspec.
+Configuration file: /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/_config.yml
+            Source: /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind
+       Destination: /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/_site
+ Incremental build: disabled. Enable with --incremental
+      Generating... 
+DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+1 │ @import 'main';
+  │         ^^^^^^
+  ╵
+    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
+DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+1 │ @import 'colors/typography-light';
+  │         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    main.scss 1:9                                                                                                  @import
+    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
+DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+2 │ @import 'colors/typography-dark';
+  │         ^^^^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    main.scss 2:9                                                                                                  @import
+    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
+DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+3 │ @import 'addon/variables';
+  │         ^^^^^^^^^^^^^^^^^
+  ╵
+    main.scss 3:9                                                                                                  @import
+    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
+DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+4 │ @import 'variables-hook';
+  │         ^^^^^^^^^^^^^^^^
+  ╵
+    main.scss 4:9                                                                                                  @import
+    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
+DEPRECATION WARNING: Sass's behavior for declarations that appear after nested
+rules will be changing to match the behavior specified by CSS in an upcoming
+version. To keep the existing behavior, move the declaration above the nested
+rule. To opt into the new behavior, wrap the declaration in `& {}`.
+
+More info: https://sass-lang.com/d/mixed-decls
+
+    ╷
+4   │ ┌   @media (prefers-color-scheme: light) {
+5   │ │     &:not([data-mode]),
+6   │ │     &[data-mode='light'] {
+7   │ │       @include light-scheme;
+8   │ │     }
+9   │ │ 
+10  │ │     &[data-mode='dark'] {
+11  │ │       @include dark-scheme;
+12  │ │     }
+13  │ │   }
+    │ └─── nested rule
+... │
+26  │     font-size: 16px;
+    │     ^^^^^^^^^^^^^^^ declaration
+    ╵
+    ../../../../jekyll-theme-chirpy-7.0.0/_sass/addon/commons.scss 26:3                                            @import
+    main.scss 7:9                                                                                                  @import
+    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
+DEPRECATION WARNING: Sass's behavior for declarations that appear after nested
+rules will be changing to match the behavior specified by CSS in an upcoming
+version. To keep the existing behavior, move the declaration above the nested
+rule. To opt into the new behavior, wrap the declaration in `& {}`.
+
+More info: https://sass-lang.com/d/mixed-decls
+
+    ╷
+15  │ ┌   @media (prefers-color-scheme: dark) {
+16  │ │     &:not([data-mode]),
+17  │ │     &[data-mode='dark'] {
+18  │ │       @include dark-scheme;
+19  │ │     }
+20  │ │ 
+21  │ │     &[data-mode='light'] {
+22  │ │       @include light-scheme;
+23  │ │     }
+24  │ │   }
+    │ └─── nested rule
+... │
+26  │     font-size: 16px;
+    │     ^^^^^^^^^^^^^^^ declaration
+    ╵
+    ../../../../jekyll-theme-chirpy-7.0.0/_sass/addon/commons.scss 26:3                                            @import
+    main.scss 7:9                                                                                                  @import
+    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
+WARNING: 11 repetitive deprecation warnings omitted.
+Run in verbose mode to see all warnings.
+                    done in 1.132 seconds.
+ Auto-regeneration: enabled for '/Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind'
+#<Thread:0x0000000129b73110 /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/commands/serve/live_reload_reactor.rb:39 run> terminated with exception (report_on_exception is true):
+/Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/eventmachine-1.2.7/lib/eventmachine.rb:531:in `start_tcp_server': no acceptor (port is in use or requires root privileges) (RuntimeError)
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/eventmachine-1.2.7/lib/eventmachine.rb:531:in `start_server'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/commands/serve/live_reload_reactor.rb:45:in `block (2 levels) in start'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/eventmachine-1.2.7/lib/eventmachine.rb:195:in `run_machine'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/eventmachine-1.2.7/lib/eventmachine.rb:195:in `run'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/commands/serve/live_reload_reactor.rb:42:in `block in start'
+[31m                    ------------------------------------------------[0m
+[31m      Jekyll 4.3.4   Please append `--trace` to the `serve` command [0m
+[31m                     for any additional information or backtrace. [0m
+[31m                    ------------------------------------------------[0m
+/Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/eventmachine-1.2.7/lib/eventmachine.rb:531:in `start_tcp_server': no acceptor (port is in use or requires root privileges) (RuntimeError)
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/eventmachine-1.2.7/lib/eventmachine.rb:531:in `start_server'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/commands/serve/live_reload_reactor.rb:45:in `block (2 levels) in start'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/eventmachine-1.2.7/lib/eventmachine.rb:195:in `run_machine'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/eventmachine-1.2.7/lib/eventmachine.rb:195:in `run'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/commands/serve/live_reload_reactor.rb:42:in `block in start'
