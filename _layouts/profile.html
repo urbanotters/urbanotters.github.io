@@ -42,9 +42,10 @@ layout: default
   <div class="profile-section">
     <h2 class="profile-section-title">Recent Publications</h2>
     <ul class="profile-list">
-      <li><a href="https://www.sisain.co.kr/news/articleView.html?idxno=52805">야권 지지층의 연합전선은 계속될까?</a> <span class="text-muted">시사IN, 2024.04</span></li>
-      <li><a href="https://www.sisain.co.kr/news/articleView.html?idxno=52683">부동산 가격이 선거에 미치는 영향</a> <span class="text-muted">시사IN, 2024.04</span></li>
-      <li><a href="https://www.sisain.co.kr/news/articleView.html?idxno=52688">데이터로 본 총선 1~9</a> <span class="text-muted">시사IN, 2024.03</span></li>
+      {% assign sorted_pubs = site.data.publications | sort: "date" | reverse %}
+      {% for pub in sorted_pubs limit: 3 %}
+        <li><a href="{{ pub.url }}">{{ pub.title }}</a> <span class="text-muted">{{ pub.outlet }}, {{ pub.date | date: "%Y.%m" }}</span></li>
+      {% endfor %}
     </ul>
     <a href="/publications/" class="profile-see-all">See all &rarr;</a>
   </div>
