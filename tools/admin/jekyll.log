@@ -107,224 +107,55 @@ More info: https://sass-lang.com/d/mixed-decls
     /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
 WARNING: 11 repetitive deprecation warnings omitted.
 Run in verbose mode to see all warnings.
-                    done in 1.746 seconds.
+                    done in 1.359 seconds.
  Auto-regeneration: enabled for '/Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind'
 LiveReload address: http://127.0.0.1:35729
   JekyllAdmin mode: production
     Server address: http://127.0.0.1:4000/
   Server running... press ctrl-c to stop.
-      Regenerating: 2 file(s) changed at 2026-06-13 22:28:35
-                    _layouts/profile-en.html
-                    index.html
-DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import 'main';
-  │         ^^^^^^
-  ╵
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import 'colors/typography-light';
-  │         ^^^^^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    main.scss 1:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-2 │ @import 'colors/typography-dark';
-  │         ^^^^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    main.scss 2:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-3 │ @import 'addon/variables';
-  │         ^^^^^^^^^^^^^^^^^
-  ╵
-    main.scss 3:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-4 │ @import 'variables-hook';
-  │         ^^^^^^^^^^^^^^^^
-  ╵
-    main.scss 4:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass's behavior for declarations that appear after nested
-rules will be changing to match the behavior specified by CSS in an upcoming
-version. To keep the existing behavior, move the declaration above the nested
-rule. To opt into the new behavior, wrap the declaration in `& {}`.
-
-More info: https://sass-lang.com/d/mixed-decls
-
-    ╷
-4   │ ┌   @media (prefers-color-scheme: light) {
-5   │ │     &:not([data-mode]),
-6   │ │     &[data-mode='light'] {
-7   │ │       @include light-scheme;
-8   │ │     }
-9   │ │ 
-10  │ │     &[data-mode='dark'] {
-11  │ │       @include dark-scheme;
-12  │ │     }
-13  │ │   }
-    │ └─── nested rule
-... │
-26  │     font-size: 16px;
-    │     ^^^^^^^^^^^^^^^ declaration
-    ╵
-    ../../../../jekyll-theme-chirpy-7.0.0/_sass/addon/commons.scss 26:3                                            @import
-    main.scss 7:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass's behavior for declarations that appear after nested
-rules will be changing to match the behavior specified by CSS in an upcoming
-version. To keep the existing behavior, move the declaration above the nested
-rule. To opt into the new behavior, wrap the declaration in `& {}`.
-
-More info: https://sass-lang.com/d/mixed-decls
-
-    ╷
-15  │ ┌   @media (prefers-color-scheme: dark) {
-16  │ │     &:not([data-mode]),
-17  │ │     &[data-mode='dark'] {
-18  │ │       @include dark-scheme;
-19  │ │     }
-20  │ │ 
-21  │ │     &[data-mode='light'] {
-22  │ │       @include light-scheme;
-23  │ │     }
-24  │ │   }
-    │ └─── nested rule
-... │
-26  │     font-size: 16px;
-    │     ^^^^^^^^^^^^^^^ declaration
-    ╵
-    ../../../../jekyll-theme-chirpy-7.0.0/_sass/addon/commons.scss 26:3                                            @import
-    main.scss 7:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-WARNING: 11 repetitive deprecation warnings omitted.
-Run in verbose mode to see all warnings.
-                    ...done in 0.888623 seconds.
-                    
-      Regenerating: 1 file(s) changed at 2026-06-13 22:29:11
-                    _posts/2024-05-17-blog.md
-DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import 'main';
-  │         ^^^^^^
-  ╵
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import 'colors/typography-light';
-  │         ^^^^^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    main.scss 1:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-2 │ @import 'colors/typography-dark';
-  │         ^^^^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    main.scss 2:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-3 │ @import 'addon/variables';
-  │         ^^^^^^^^^^^^^^^^^
-  ╵
-    main.scss 3:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-4 │ @import 'variables-hook';
-  │         ^^^^^^^^^^^^^^^^
-  ╵
-    main.scss 4:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass's behavior for declarations that appear after nested
-rules will be changing to match the behavior specified by CSS in an upcoming
-version. To keep the existing behavior, move the declaration above the nested
-rule. To opt into the new behavior, wrap the declaration in `& {}`.
-
-More info: https://sass-lang.com/d/mixed-decls
-
-    ╷
-4   │ ┌   @media (prefers-color-scheme: light) {
-5   │ │     &:not([data-mode]),
-6   │ │     &[data-mode='light'] {
-7   │ │       @include light-scheme;
-8   │ │     }
-9   │ │ 
-10  │ │     &[data-mode='dark'] {
-11  │ │       @include dark-scheme;
-12  │ │     }
-13  │ │   }
-    │ └─── nested rule
-... │
-26  │     font-size: 16px;
-    │     ^^^^^^^^^^^^^^^ declaration
-    ╵
-    ../../../../jekyll-theme-chirpy-7.0.0/_sass/addon/commons.scss 26:3                                            @import
-    main.scss 7:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-DEPRECATION WARNING: Sass's behavior for declarations that appear after nested
-rules will be changing to match the behavior specified by CSS in an upcoming
-version. To keep the existing behavior, move the declaration above the nested
-rule. To opt into the new behavior, wrap the declaration in `& {}`.
-
-More info: https://sass-lang.com/d/mixed-decls
-
-    ╷
-15  │ ┌   @media (prefers-color-scheme: dark) {
-16  │ │     &:not([data-mode]),
-17  │ │     &[data-mode='dark'] {
-18  │ │       @include dark-scheme;
-19  │ │     }
-20  │ │ 
-21  │ │     &[data-mode='light'] {
-22  │ │       @include light-scheme;
-23  │ │     }
-24  │ │   }
-    │ └─── nested rule
-... │
-26  │     font-size: 16px;
-    │     ^^^^^^^^^^^^^^^ declaration
-    ╵
-    ../../../../jekyll-theme-chirpy-7.0.0/_sass/addon/commons.scss 26:3                                            @import
-    main.scss 7:9                                                                                                  @import
-    /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/assets/css/jekyll-theme-chirpy.scss 1:9  root stylesheet
-WARNING: 11 repetitive deprecation warnings omitted.
-Run in verbose mode to see all warnings.
-                    ...done in 0.896478 seconds.
-                    
+[0m
+/Users/dodal/.rbenv/versions/3.3.1/lib/ruby/3.3.0/fileutils.rb:2330:in `unlink': No such file or directory @ apply2files - /Users/dodal/urbanotters.github.io/.claude/worktrees/thirsty-rosalind/_site/assets/docs/CV_Suhyeon_Shin_CBP.pdf (Errno::ENOENT)
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/3.3.0/fileutils.rb:2330:in `block in remove_file'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/3.3.0/fileutils.rb:2335:in `platform_support'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/3.3.0/fileutils.rb:2329:in `remove_file'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/3.3.0/fileutils.rb:1474:in `remove_file'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/3.3.0/fileutils.rb:1222:in `block in rm'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/3.3.0/fileutils.rb:1221:in `each'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/3.3.0/fileutils.rb:1221:in `rm'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/static_file.rb:106:in `write'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/site.rb:231:in `block in write'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/site.rb:364:in `block in each_site_file'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/site.rb:364:in `each'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/site.rb:364:in `each_site_file'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/site.rb:230:in `write'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/site.rb:82:in `process'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/command.rb:28:in `process_site'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/commands/build.rb:65:in `build'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/commands/build.rb:36:in `process'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/command.rb:91:in `block in process_with_graceful_fail'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/command.rb:91:in `each'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/command.rb:91:in `process_with_graceful_fail'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/lib/jekyll/commands/serve.rb:86:in `block (2 levels) in init_with_program'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/mercenary-0.4.0/lib/mercenary/command.rb:221:in `block in execute'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/mercenary-0.4.0/lib/mercenary/command.rb:221:in `each'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/mercenary-0.4.0/lib/mercenary/command.rb:221:in `execute'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/mercenary-0.4.0/lib/mercenary/program.rb:44:in `go'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/mercenary-0.4.0/lib/mercenary.rb:21:in `program'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/jekyll-4.3.4/exe/jekyll:15:in `<top (required)>'
+	from /Users/dodal/.rbenv/versions/3.3.1/bin/jekyll:25:in `load'
+	from /Users/dodal/.rbenv/versions/3.3.1/bin/jekyll:25:in `<top (required)>'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/cli/exec.rb:58:in `load'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/cli/exec.rb:58:in `kernel_load'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/cli/exec.rb:23:in `run'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/cli.rb:455:in `exec'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/vendor/thor/lib/thor/command.rb:28:in `run'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/vendor/thor/lib/thor/invocation.rb:127:in `invoke_command'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/vendor/thor/lib/thor.rb:527:in `dispatch'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/cli.rb:35:in `dispatch'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/vendor/thor/lib/thor/base.rb:584:in `start'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/cli.rb:29:in `start'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/exe/bundle:28:in `block in <top (required)>'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/lib/bundler/friendly_errors.rb:117:in `with_friendly_errors'
+	from /Users/dodal/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/bundler-2.5.10/exe/bundle:20:in `<top (required)>'
+	from /Users/dodal/.rbenv/versions/3.3.1/bin/bundle:25:in `load'
+	from /Users/dodal/.rbenv/versions/3.3.1/bin/bundle:25:in `<main>'
